@@ -42,21 +42,22 @@ BART_Andrew = function(X, y, # X is the feature matrix, y is the target
   # Create a list of trees for the initial stump
   curr_trees = create_trees(num_trees = num_trees, 
                             y = y_scale,
+                            X = X,
                             type = 'stump')
-  browser()
-  
+
   # Start the iterations loop
   for (i in 1:iter) {
     # Start looping through trees
     for (j in 1:num_trees) {
       
       # Calculate partial residuals for current tree
-      current_partial_residuals = get_predictions(curr_trees[[-j]])
+      #current_partial_residuals = get_predictions(curr_trees[[-j]])
       
       # Propose a new tree via grow/change/prune/swap
       type = 'grow' #sample(c('grow', 'prune', 'change', 'swap'), 1)
       new_trees = create_trees(num_trees = num_trees,
                                y = y_scale,
+                               X = X,
                                type = type, 
                                which_tree = j, 
                                curr_trees = curr_trees)
@@ -95,6 +96,7 @@ BART_Andrew = function(X, y, # X is the feature matrix, y is the target
 
 create_trees = function(num_trees, # Number of trees
                         y, # Target variable
+                        X, # Feature matrix
                         type = c('stump', # Create initial stump trees
                                  'grow',  # Grow existing tree
                                  'prune', # Prune existing tree
@@ -103,19 +105,19 @@ create_trees = function(num_trees, # Number of trees
                         which_tree, # Which tree to update (not required if type is stump)
                         curr_trees) { # The current set of trees (not required if type is stump)
   
-  # Each tree has 10 columns and 2 elements
-  # The 2 elements are the tree matrix and the node indices
-  # The tree matrix has:
-  # Node number
+  # Each tree has 6 columns and 2 elements
+  # The 3 elements are the tree matrix, and the node indices
+  # The tree matrix has columns:
   # Terminal (0 = no, 1 = yes)
   # Child left
   # Child right
   # Node parents
-  # Mean of target within node
-  # mu values
-  # Node size
   # Split variable
   # Split value
+  # mu values
+  # Node size
+  
+  # The nod indices is just a vector displaying the terminal node number for each observation
   
   # Create a stump
   if(type == 'stump') {
@@ -126,54 +128,87 @@ create_trees = function(num_trees, # Number of trees
       # Set up each tree to have two elements in the list as described above
       all_trees[[j]] = vector('list', length = 2)
       # Give the elements names
-      names(all_trees[[j]]) = c('tree_matrix', 'node_indices')
+      names(all_trees[[j]]) = c('tree_matrix', 
+                                'node_indices')
       # Create the two elements: first is a matrix
-      all_trees[[j]][[1]] = matrix(NA, ncol = 10, nrow = 1)
+      all_trees[[j]][[1]] = matrix(NA, ncol = 8, nrow = 1)
       
-      # Second is the assignment to node indices
+      # Third is the assignment to node indices
       all_trees[[j]][[2]] = rep(1, length(y))
       
       # Create column names
-      colnames(all_trees[[j]][[1]]) = c('node', 
-                                        'terminal', 
+      colnames(all_trees[[j]][[1]]) = c('terminal', 
                                         'child_left', 
                                         'child_right',
                                         'parent',
-                                        'y_mean',
-                                        'mu',
-                                        'size',
                                         'split_variable',
-                                        'split_value')
+                                        'split_value',
+                                        'mu',
+                                        'node_size')
       
       # Set values for stump 
-      all_trees[[j]][[1]][1,] = c(1, 1, NA, NA, NA, 0, 0, length(y), NA, NA)
-      
+      all_trees[[j]][[1]][1,] = c(1, 1, NA, NA, NA, NA, 0, length(y))
+
     } # End of loop through trees
     
   } # End of stump if statement
 
   if(type == 'grow') {
-    browser()
     
+    # Choose a split variable uniformly from all columns
+    split_variable = sample(1:ncol(X), 1)
+    # Choose a split value from the full range
+    split_value = runif(1, 
+                        min(X[, split_variable]), 
+                        max(X[, split_variable]))
+
+    # Get the list of terminal nodes
+    terminal_nodes = which(curr_trees[[which_tree]]$tree_matrix[,'terminal'] == 1) # Create the list of terminal ndoes
+        
     # Add two extra rows to the tree in question
-    curr_trees[[which_tree]]$tree_matrix = rbind(curr_trees[[which_tree]]$tree_matrix, 0, 0)
-    
-    # Give these node numbers
-    curr_trees[[which_tree]]$tree_matrix[,1] = 1:nrow(curr_trees[[which_tree]]$tree_matrix)
+    curr_trees[[which_tree]]$tree_matrix = rbind(curr_trees[[which_tree]]$tree_matrix, 
+                                                 c(1, NA, NA, NA, NA, NA, NA, NA), # Make sure they're both terminal 
+                                                 c(1, NA, NA, NA, NA, NA, NA, NA))
     
     # Choose a random terminal node to split 
-    terminal_nodes = which(curr_trees[[which_tree]]$tree_matrix[,'terminal'] == 1) # Create the list of terminal ndoes
     node_to_split = sample(terminal_nodes, 1) # Choose which node to split
-    curr_trees[[which_tree]]$tree_matrix[node_to_split,'terminal'] = 0 # Make that node non-terminal
+    curr_trees[[which_tree]]$tree_matrix[node_to_split,
+                                         1:6] = c(0, # Now not temrinal
+                                                             nrow(curr_trees[[which_tree]]$tree_matrix) - 1, # child_left is penultimate row
+                                                             nrow(curr_trees[[which_tree]]$tree_matrix),  # child_right is penultimate row
+                                                             NA,
+                                                             split_variable,
+                                                             split_value)
+                                                             
+    #  Fill in the parents of these two nodes
+    curr_trees[[which_tree]]$tree_matrix[nrow(curr_trees[[which_tree]]$tree_matrix),'parent'] = node_to_split 
+    curr_trees[[which_tree]]$tree_matrix[nrow(curr_trees[[which_tree]]$tree_matrix)-1,'parent'] = node_to_split 
     
-    # 
+    # Now call the fill function on this tree
+    curr_trees[[which_tree]]$tree_matrix[,'node_size'] = fill_node_sizes(curr_trees[[which_tree]]$tree_matrix, X, y)
     
-    
-  }
+  } # End of grow loop
   
   # Return all_trees
   return(all_trees)
   
+} # End of create_trees function
+
+
+# Fill node sizes function ------------------------------------------------------
+
+# The fill tree function takes a tree matrix and returns the number of obs in each node in it
+fill_node_sizes = function(tree_matrix, X, y) {
+  
+  # For all but the top row, find the number of observations falling into each one
+  for(i in 2:nrow(tree_matrix)) {
+    # See if this node is terminal
+    is_terminal = ifelse(tree_matrix[i,'terminal']==1, TRUE, FALSE)
+    # If it is terminal find the parent and split total accordingly
+    if(is_terminal) {}
+  }
+  
+  browser()
+  
+  
 }
-
-

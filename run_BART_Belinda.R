@@ -34,5 +34,5 @@ y = data[,1]
 # # Run through Belinda's version
 # # Rcpp::sourceCpp('BART_main_c++.cpp')
 
-source('/Volumes/MacintoshHD2/GitHub/rBART/Andrew_BART.R')
+source('Andrew_BART.R')
 BART_Andrew(X, y)

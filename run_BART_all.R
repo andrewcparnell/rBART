@@ -37,10 +37,11 @@ plot(sigma)
 
 source('Andrew_BART.R')
 set.seed(124)
-BART_out = BART_Andrew(X, y, control = list(num_trees = 20, node_min_size = 5))
+BART_out = BART_Andrew(X, y, control = list(num_trees = 2, node_min_size = 5))
 plot(BART_out$sigma)
 y_hat_AP_mean = apply(BART_out$y_hat, 2, 'mean')
 plot(y, y_hat_AP_mean)
+cor(y, y_hat_AP_mean)
 abline(a = 0, b = 1)
 
 plot(y_hat, y_hat_AP_mean)

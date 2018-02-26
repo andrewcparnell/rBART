@@ -60,7 +60,7 @@ BART_Andrew = function(X, y, # X is the feature matrix, y is the target
 
   # Start the iterations loop
   for (i in 1:iter) {
-    cat('iteration',i,'\n')
+    if(i%%10 ==0) cat('iteration',i,'\n')
     
     # If at the right place store everything
     if((i > burn) & ((i %% thin) == 0) ) {
@@ -136,7 +136,7 @@ BART_Andrew = function(X, y, # X is the feature matrix, y is the target
     tau = update_tau(S, nu, lambda, 
                      n = length(y_scale))
     sigma = 1/sqrt(tau)
-    print(sigma)
+    #print(sigma)
     
   } # End iterations loop
   

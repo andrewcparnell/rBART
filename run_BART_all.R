@@ -11,21 +11,21 @@ X = data[,-1]
 y = scale(data[,1])[,1]
 
 # # Run it through bartMachine with a fixed seed and 1 tree
-set.seed(123)
-bart_machine = bartMachine(X, y, num_trees = 2)
-summary(bart_machine)
-
-# Extract predictions and plot vs true values
-bart_machine_pred = bart_machine_get_posterior(bart_machine,
-                                               new_data = X)
-y_hat = bart_machine_pred$y_hat
-#y_hat_post = bart_machine_pred$y_hat_posterior_samples
-plot(y, y_hat) # Unsurprisingly pretty good
-
-# Extract the sig squared posteriors
-sigsqs = get_sigsqs(bart_machine)
-sigma = sqrt(sigsqs)
-plot(sigma)
+# set.seed(123)
+# bart_machine = bartMachine(X, y, num_trees = 2)
+# summary(bart_machine)
+# 
+# # Extract predictions and plot vs true values
+# bart_machine_pred = bart_machine_get_posterior(bart_machine,
+#                                                new_data = X)
+# y_hat = bart_machine_pred$y_hat
+# #y_hat_post = bart_machine_pred$y_hat_posterior_samples
+# plot(y, y_hat) # Unsurprisingly pretty good
+# 
+# # Extract the sig squared posteriors
+# sigsqs = get_sigsqs(bart_machine)
+# sigma = sqrt(sigsqs)
+# plot(sigma)
 # 
 # output = cbind(tau, t(y_hat_post))
 # colnames(output) = c('tau', paste0('y_hat',1:nrow(data)))

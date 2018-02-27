@@ -46,7 +46,7 @@ BART_Andrew = function(X, y, # X is the feature matrix, y is the target
   tree_store = vector('list', store_size)
   sigma_store = rep(NA, store_size)
   y_hat_store = matrix(NA, ncol = length(y), nrow = store_size)
-  
+
   # Scale the response target variable
   y_mean = mean(y)
   y_sd = sd(y)

@@ -81,17 +81,18 @@ BART_Andrew = function(X, y, # X is the feature matrix, y is the target
                         single_tree = num_trees == 2)
       
       # Propose a new tree via grow/change/prune/swap
-      type = sample(c('grow', 'prune'), 1) #sample(c('grow', 'prune', 'change', 'swap'), 1)
+      type = sample(c('grow', 'prune', 'change', 'swap'), 1)
+      if(i < max(floor(0.1*burn), 10)) type = 'grow' # Grow for the first few iterations
+      if(i == 20) type = 'swap'
+
+      # Get a new tree!
       new_trees = curr_trees
-      new_trees[[j]] = change_trees(y = y_scale,
+      new_trees[[j]] = update_trees(y = y_scale,
                                X = X,
                                type = type, 
                                curr_tree = curr_trees[[j]],
                                node_min_size = node_min_size)
 
-      # Check to see the tree is ok 
-      if(any(new_trees[[j]]$tree_matrix[,'node_size'] == 0)) browser()
-      
       # Calculate the complete conditional and acceptance probability
       new_log_lik = tree_full_conditional(new_trees[[j]], 
                                           current_partial_residuals,
@@ -198,10 +199,10 @@ create_stump = function(num_trees,
   
 } # End of function
 
-# Function to change trees ------------------------------------------------
+# Function to update trees ------------------------------------------------
 # i.e. grow prune change swap 
   
-change_trees = function(y, # Target variable
+update_trees = function(y, # Target variable
                         X, # Feature matrix
                         type = c('grow',  # Grow existing tree
                                  'prune', # Prune existing tree
@@ -251,7 +252,7 @@ change_trees = function(y, # Target variable
     high_bound = max(X[new_tree$node_indices == node_to_split,
                       split_variable]) - .Machine$double.eps
     split_value = runif(1, low_bound, high_bound)
-    
+
     curr_parent = new_tree$tree_matrix[node_to_split, 'parent'] # Make sure to keep the current parent in there. Will be NA if at the root node
     new_tree$tree_matrix[node_to_split,1:6] = c(0, # Now not temrinal
                                                  nrow(new_tree$tree_matrix) - 1, # child_left is penultimate row
@@ -338,10 +339,116 @@ change_trees = function(y, # Target variable
 
   } # End of prune if statement
   
+  # Change a node means change out the split value and split variable of an internal node. Need to make sure that this does now produce a bad tree (i.e. zero terminal nodes)
+  if(type == 'change') {
+    
+    # Need to get the internal nodes
+    internal_nodes = which(new_tree$tree_matrix[,'terminal'] == 0)
+    terminal_nodes = which(new_tree$tree_matrix[,'terminal'] == 1)
+    
+    # Create a while loop to get good trees
+    # Create a counter to stop after a certain number of bad trees
+    max_bad_trees = 2
+    count_bad_trees = 0
+    bad_trees = TRUE
+    while(bad_trees) {
+      # Re-set the tree
+      new_tree = curr_tree
+      
+      # choose an internal node to change
+      node_to_change = sample(internal_nodes, 1)
+      
+      # Use the get_children function to get all the children of this node
+      all_children = get_children(new_tree$tree_matrix, node_to_change)
+      
+      # Now find all the nodes which match these children
+      use_node_indices = !is.na(match(new_tree$node_indices, all_children))
+      
+      # Create new split variable and value based on ignorance
+      # then check this doesn't give a bad tree
+      new_split_variable = sample(1:ncol(X), 1)
+      new_split_value = runif(1, min(X[use_node_indices,new_split_variable]),
+                              max(X[use_node_indices,new_split_variable]))
+      #new_split_value = mean(X[use_node_indices,new_split_variable])
+
+      # Update the tree details
+      new_tree$tree_matrix[node_to_change,
+                           c('split_variable',
+                             'split_value')] = c(new_split_variable, 
+                                                 new_split_value)
+      
+      # Update the tree node indices
+      new_tree = fill_tree_details(new_tree, X)
+      
+      # Check for bad tree
+      if(any(new_tree$tree_matrix[terminal_nodes, 'node_size'] == 0)) {
+        count_bad_trees = count_bad_trees + 1
+      } else {
+        bad_trees = FALSE
+      }
+      if(count_bad_trees == max_bad_trees) return(curr_tree)
+      
+    } # end of while loop
+    
+  } # End of change loop
+  
+  # Swap takes two neighbouring internal nodes and swaps around their split values and variables
+  # My guess is that this is very inefficient
+  if(type == 'swap') {
+    # Need to get the internal nodes
+    internal_nodes = which(new_tree$tree_matrix[,'terminal'] == 0)
+    terminal_nodes = which(new_tree$tree_matrix[,'terminal'] == 1)
+    
+    # Find pairs of neighbouring internal nodes
+    parent_of_internal = new_tree$tree_matrix[internal_nodes,'parent']
+    pairs_of_internal = cbind(internal_nodes, parent_of_internal)[-1,]
+    
+    # Create a while loop to get good trees
+    # Create a counter to stop after a certain number of bad trees
+    max_bad_trees = 2
+    count_bad_trees = 0
+    bad_trees = TRUE
+    while(bad_trees) {
+      # Re-set the tree
+      new_tree = curr_tree
+      
+      # Pick a random pair
+      nodes_to_swap = sample(1:nrow(pairs_of_internal), 1)
+      
+      # Get the split variables and values for this pair
+      swap_1_parts = new_tree$tree_matrix[pairs_of_internal[nodes_to_swap,1],
+                                          c('split_variable', 'split_value')]
+      swap_2_parts = new_tree$tree_matrix[pairs_of_internal[nodes_to_swap,2],
+                                          c('split_variable', 'split_value')]
+      
+      # Update the tree details - swap them over
+      new_tree$tree_matrix[pairs_of_internal[nodes_to_swap,1],
+                           c('split_variable',
+                             'split_value')] = swap_2_parts
+      new_tree$tree_matrix[pairs_of_internal[nodes_to_swap,2],
+                           c('split_variable',
+                             'split_value')] = swap_1_parts
+      
+      # Update the tree node indices
+      new_tree = fill_tree_details(new_tree, X)
+      
+      # Check for bad tree
+      if(any(new_tree$tree_matrix[terminal_nodes, 'node_size'] == 0)) {
+        count_bad_trees = count_bad_trees + 1
+      } else {
+        bad_trees = FALSE
+      }
+      if(count_bad_trees == max_bad_trees) return(curr_tree)
+      
+    } # end of while loop
+    
+  } # End of change loop
+  
+  
   # Return all_trees
   return(new_tree)
   
-} # End of change_trees function
+} # End of update_trees function
 
 # Fill_tree_details -------------------------------------------------------
 
@@ -381,7 +488,8 @@ fill_tree_details = function(curr_tree, X) {
       new_tree_matrix[i,'node_size'] = sum(X[node_indices == curr_parent,split_var] >= split_val)
       node_indices[node_indices == curr_parent][X[node_indices == curr_parent,split_var] >= split_val] = i
     }
-  } # ENd of loop through table
+  } # End of loop through table
+  
   return(list(tree_matrix = new_tree_matrix,
               node_indices = node_indices))  
   
@@ -519,5 +627,26 @@ update_tau = function(S, nu, lambda, n) {
   tau = rgamma(1, (nu + n) / 2, (S + nu * lambda) / 2)
   
   return(tau)
+}
+
+
+# get_children ------------------------------------------------------------
+
+# A function which if, the current node is terminal, returns the node, or if not returns the children and calls the function again on the children
+get_children = function(tree_mat, parent) {
+  # Create a holder for the children
+  all_children = NULL
+  if(tree_mat[parent,'terminal'] == 1) {
+    # If the node is terminal return the list so far
+    return(c(all_children, parent))
+  } else {
+    # If not get the current children
+    curr_child_left = tree_mat[parent, 'child_left']
+    curr_child_right = tree_mat[parent, 'child_right']
+    # Return the children and also the children of the children recursively
+    return(c(all_children, 
+             get_children(tree_mat,curr_child_left),
+             get_children(tree_mat,curr_child_right)))
+  }
 }
 

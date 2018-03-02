@@ -18,14 +18,13 @@ summary(bart_machine)
 # Extract predictions and plot vs true values
 bart_machine_pred = bart_machine_get_posterior(bart_machine,
                                                new_data = X)
-y_hat = bart_machine_pred$y_hat
+y_hat_bartm = bart_machine_pred$y_hat
 #y_hat_post = bart_machine_pred$y_hat_posterior_samples
-plot(y, y_hat) # Unsurprisingly pretty good
+plot(y, y_hat_bartm) # Unsurprisingly pretty good
 
 # Extract the sig squared posteriors
-sigsqs = get_sigsqs(bart_machine)
-sigma = sqrt(sigsqs)
-plot(sigma)
+sigsqs_bartm = get_sigsqs(bart_machine)
+sigma_bartm = sqrt(sigsqs_bartm)
 # 
 # output = cbind(tau, t(y_hat_post))
 # colnames(output) = c('tau', paste0('y_hat',1:nrow(data)))
@@ -35,15 +34,25 @@ plot(sigma)
 # # Run through Belinda's version
 # # Rcpp::sourceCpp('BART_main_c++.cpp')
 
-source('Andrew_BART.R')
+source('rBART.R')
 set.seed(124)
-BART_out = BART_Andrew(X, y, control = list(num_trees = 2, node_min_size = 5))
-plot(BART_out$sigma)
-y_hat_AP_mean = apply(BART_out$y_hat, 2, 'mean')
-plot(y, y_hat_AP_mean)
-cor(y, y_hat_AP_mean)
+rBART_out = rBART(X, y, num_trees = 2)
+
+# Plot posterior sigma and compare with BARTMachine
+plot(rBART_out$sigma)
+points(sigma, col = 'blue')
+
+# Compare predictions from truth
+y_hat_rBART = apply(rBART_out$y_hat, 2, 'mean')
+plot(y, y_hat_rBART)
+cor(y, y_hat_rBART)
 abline(a = 0, b = 1)
 
-plot(y_hat, y_hat_AP_mean)
+# Compare predictions between rBART and BARTMachine
+plot(y_hat_bartm, y_hat_rBART)
 abline(a = 0, b = 1)
  
+# Check predict function works
+pred_y_rBART = predict_rBART(X, rBART_out, type = 'mean')
+plot(pred_y_rBART, y_hat_AP_mean) # Should be identical
+abline(a = 0, b = 1)

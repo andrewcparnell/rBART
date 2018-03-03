@@ -1,9 +1,6 @@
 # Create a version of BART that runs purely in R without any calls to other packages
 # The idea is that this can be used for teaching purposes and so it clearly commented
 
-# Boiler plate code -------------------------------------------------------
-
-
 # Main function -----------------------------------------------------------
 
 rBART = function(X, y, # X is the feature matrix, y is the target
@@ -34,6 +31,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
     
   # Extract initial values
   tau = inits$tau
+  sigma = 1/sqrt(tau)
   
   # Extract MCMC details
   iter = MCMC$iter # Number of iterations
@@ -56,7 +54,8 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   curr_trees = create_stump(num_trees = num_trees, 
                             y = y_scale,
                             X = X)
-
+  predictions = get_predictions(curr_trees, X, single_tree = num_trees == 1)
+  
   # Start the iterations loop
   for (i in 1:iter) {
     if(i%%10 ==0) cat('iteration',i,'\n')
@@ -137,7 +136,12 @@ rBART = function(X, y, # X is the feature matrix, y is the target
          sigma = sigma_store*y_sd,
          y_hat = y_hat_store,
          y = y,
-         X = X))
+         X = X,
+         iter = iter,
+         burn = burn,
+         thin = thin,
+         store_size = store_size,
+         num_trees = num_trees))
   
 } # End main function
 
@@ -348,16 +352,17 @@ prune_tree = function(X, y, curr_tree) {
         curr_children = which(new_tree$tree_matrix[,'parent'] == curr_parent)
         # Input these children back into the parent
         new_tree$tree_matrix[curr_parent,c('child_left','child_right')] = sort(curr_children)
-      }
-    }
+      } # End for loop of correcting parents and children
+    } # End if statement to fill in tree details
     
     # Call the fill function on this tree
     new_tree = fill_tree_details(new_tree, X)
     
-    # Return new_tree
-    return(new_tree)
   }
-
+  
+  # Return new_tree
+  return(new_tree)
+  
 } # End of prune_tree function
   
 
@@ -367,6 +372,9 @@ change_tree = function(X, y, curr_tree) {
   
   # Change a node means change out the split value and split variable of an internal node. Need to make sure that this does now produce a bad tree (i.e. zero terminal nodes)
 
+  # If current tree is a stump nothing to change
+  if(nrow(curr_tree$tree_matrix) == 1) return(curr_tree)
+  
   # Create a holder for the new tree
   new_tree = curr_tree
   
@@ -429,12 +437,18 @@ swap_tree = function(X, y, curr_tree) {
   
   # Swap takes two neighbouring internal nodes and swaps around their split values and variables
   
+  # If current tree is a stump nothing to change
+  if(nrow(curr_tree$tree_matrix) == 1) return(curr_tree)
+  
   # Create a holder for the new tree
   new_tree = curr_tree
   
   # Need to get the internal nodes
   internal_nodes = which(new_tree$tree_matrix[,'terminal'] == 0)
   terminal_nodes = which(new_tree$tree_matrix[,'terminal'] == 1)
+  
+  # If less than 3 internal nodes return curr_tree
+  if(length(internal_nodes) < 3) return(curr_tree)
   
   # Find pairs of neighbouring internal nodes
   parent_of_internal = new_tree$tree_matrix[internal_nodes,'parent']
@@ -716,3 +730,110 @@ predict_rBART = function(newX, rBART_posterior,
   return(out)
   
 } # end of predict function
+
+
+# Plot_tree function ------------------------------------------------------
+
+plot_tree = function(rBART_posterior, 
+                     iter = sample(1:rBART_posterior$store_size, 1), 
+                     tree_num = sample(1:rBART_posterior$num_trees, 1),
+                     horiz = TRUE) {
+  # Use the ggtree packages - needs to be installed from bioconductor
+  require(ggtree)
+  
+  # Get the current tree we want to plot
+  curr_tree = rBART_posterior$trees[[iter]][[tree_num]]$tree_matrix
+  
+  # Get rid of stumps
+  if(nrow(curr_tree) ==1) stop("Tree is just a stump; cannot be plotted.")
+  
+  # Now need to get it into phylo format for plotting in ggtree
+  
+  # In a phylo tree the terminal nodes are labelled 1, 2, 3, etc. Don't know why!
+  terminal_nodes = which(curr_tree[,'terminal'] == 1)
+  internal_nodes = which(curr_tree[,'terminal'] == 0)
+  
+  # Create a vector which includes the new node numbers next to the old ones. The index is the old row number
+  node_number_swap = cbind(c(terminal_nodes,internal_nodes),
+                           1:nrow(curr_tree))
+  node_number_vec = node_number_swap[order(node_number_swap[,1]),2]
+  
+  # This means I need to re-label the entire tree!
+  new_tree = curr_tree[c(terminal_nodes, internal_nodes),]
+  new_tree[,'child_left'] = node_number_vec[new_tree[,'child_left']]
+  new_tree[,'child_right'] = node_number_vec[new_tree[,'child_right']]
+  new_tree[,'parent'] = node_number_vec[new_tree[,'parent']]
+  
+  # Create the edge labels for the new tree
+  split_variables = new_tree[,'split_variable']
+  split_values = round(new_tree[,'split_value'],2)
+  left_edge_labels = paste0('x',split_variables,'<',split_values)
+  left_edge_labels[is.na(split_variables)] = NA
+  right_edge_labels = paste0('x',split_variables,'>=',split_values)
+  right_edge_labels[is.na(split_variables)] = NA
+  
+  # Get the new terminal nodes and internal nodes
+  new_terminal_nodes = which(new_tree[,'terminal'] == 1)
+  new_internal_nodes = which(new_tree[,'terminal'] == 0)
+  
+  # Now create the edge matrix needs to link each edge
+  # Create holder for edge matrix
+  edge = data.frame(parent = rep(NA,nrow(new_tree)*2), 
+                    child = rep(NA,nrow(new_tree)*2), 
+                    label = rep('x', nrow(new_tree*2)),
+                    stringsAsFactors = FALSE)
+  for(i in 1:nrow(new_tree)) {
+      edge[2*i-1,1:2] = as.integer(c(new_tree[i,'child_left'],i))
+      edge[2*i,1:2] = as.integer(c(new_tree[i,'child_right'],i))
+      edge[2*i-1,3] = left_edge_labels[i]
+      edge[2*i,3] = right_edge_labels[i]
+  }
+  # Trim out the NAs
+  bad_rows = which(is.na(edge[,1]))
+  tree_obj = edge[-bad_rows,c(2,1,3)]
+  
+  # Re-order it so that it follows the bizarre ordering of ape/ggtree
+  tree_obj2 = tree_obj[1,1:3,drop = FALSE]
+  tree_remaining = tree_obj[-1,,drop = FALSE]
+  still_going = TRUE
+  while(still_going) {
+    curr_terminal = tree_obj2[nrow(tree_obj2),2]
+    matches = which(tree_remaining[,1] == curr_terminal)
+    if(length(matches) > 0) {
+      tree_obj2 = rbind(tree_obj2, tree_remaining[matches,])  
+      tree_remaining = tree_remaining[-matches,,drop=FALSE]
+    } else {
+      tree_obj2 = rbind(tree_obj2, tree_remaining[1,])  
+      tree_remaining = tree_remaining[-1,,drop=FALSE]
+    }
+    if(nrow(tree_obj2) == nrow(tree_obj)) still_going = FALSE
+  }
+  
+  # Get the number of internal nodes + stump node
+  Nnode = length(new_internal_nodes)
+  
+  # Get the tip labels and the internal node labels
+  tip_labels = round(new_tree[new_terminal_nodes, 'mu'], 2)
+  
+  # Put together 
+  tree = list(edge = as.matrix(tree_obj2[,1:2]),
+              tip.label = as.character(tip_labels),
+              Nnode = Nnode)
+  class(tree) = "phylo"
+  attr(tree, 'order') = 'cladewise'
+  
+  # Now plot
+  p = ggtree(tree) + 
+    geom_tiplab(align = TRUE)
+  if(!horiz) p = p + coord_flip() + 
+    scale_x_reverse()
+    
+  # Add in edge labels
+  edge = tree_obj2
+  colnames(edge)=c("parent", "node", "edge_lab")
+  
+  # Finally combine and print
+  p2 = p %<+% edge + geom_label(aes(x=branch, label=edge_lab))
+  print(p2)
+
+}

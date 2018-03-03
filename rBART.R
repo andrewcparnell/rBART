@@ -43,7 +43,8 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   tree_store = vector('list', store_size)
   sigma_store = rep(NA, store_size)
   y_hat_store = matrix(NA, ncol = length(y), nrow = store_size)
-
+  log_lik_store = rep(NA, store_size)
+  
   # Scale the response target variable
   y_mean = mean(y)
   y_sd = sd(y)
@@ -56,9 +57,15 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                             X = X)
   predictions = get_predictions(curr_trees, X, single_tree = num_trees == 1)
   
+  # Set up a progress bar
+  pb = utils::txtProgressBar(min = 1, max = iter,
+                             style = 3, width = 60, 
+                             title = 'Running rBART...')
+  
   # Start the iterations loop
   for (i in 1:iter) {
-    if(i%%10 ==0) cat('iteration',i,'\n')
+    #if(i%%10 ==0) cat('iteration',i,'\n')
+    utils::setTxtProgressBar(pb, i)
     
     # If at the right place store everything
     if((i > burn) & ((i %% thin) == 0) ) {
@@ -66,6 +73,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
       tree_store[[curr]] = curr_trees
       sigma_store[curr] = sigma
       y_hat_store[curr,] = predictions
+      log_lik_store[curr] = log_lik
     }
     
     # Start looping through trees
@@ -130,11 +138,16 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                      n = length(y_scale))
     sigma = 1/sqrt(tau)
 
+    # Get the overall log likelihood
+    log_lik = sum(dnorm(y_scale, mean = predictions, sd = sigma, log = TRUE))
+    
   } # End iterations loop
+  cat('\n') # Make sure progress bar ends on a new line
   
   return(list(trees = tree_store,
          sigma = sigma_store*y_sd,
          y_hat = y_hat_store,
+         log_lik = log_lik_store,
          y = y,
          X = X,
          iter = iter,
@@ -575,21 +588,24 @@ tree_full_conditional = function(tree, R, tau, tau_mu) {
 
 # Gets the predicted values from a current set of trees
 get_predictions = function(trees, X, single_tree = FALSE) {
-  
+
   # Stop nesting problems in case of multiple trees
   if(is.null(names(trees)) & (length(trees) == 1)) trees = trees[[1]]
   
   # Normally trees will be a list of lists but just in case
   if(single_tree) {
-    # Deal wiht just a single tree
+    # Deal with just a single tree
     if(nrow(trees$tree_matrix) == 1) {
       predictions = rep(trees$tree_matrix[1, 'mu'], nrow(X))
     } else {
       # Loop through the node indices to get predictions
       predictions = rep(NA, nrow(X))
       unique_node_indices = unique(trees$node_indices)
+      # Get the node indices for the current X matrix
+      curr_X_node_indices = fill_tree_details(trees, X)$node_indices
+      # Now loop through all node indices to fill in details
       for(i in 1:length(unique_node_indices)) {
-        predictions[trees$node_indices == unique_node_indices[i]] = 
+        predictions[curr_X_node_indices == unique_node_indices[i]] = 
           trees$tree_matrix[unique_node_indices[i], 'mu']
       }
     }
@@ -741,6 +757,9 @@ plot_tree = function(rBART_posterior,
   # Use the ggtree packages - needs to be installed from bioconductor
   require(ggtree)
   
+  # cat out the iteration and tree 
+  cat('iteraton:',iter,' tree number', tree_num,'\n')
+  
   # Get the current tree we want to plot
   curr_tree = rBART_posterior$trees[[iter]][[tree_num]]$tree_matrix
   
@@ -824,7 +843,7 @@ plot_tree = function(rBART_posterior,
   
   # Now plot
   p = ggtree(tree) + 
-    geom_tiplab(align = TRUE)
+    geom_tiplab(align = TRUE) + labs(title=paste0("Iteration: ",iter,', tree:',tree_num))
   if(!horiz) p = p + coord_flip() + 
     scale_x_reverse()
     
@@ -836,4 +855,37 @@ plot_tree = function(rBART_posterior,
   p2 = p %<+% edge + geom_label(aes(x=branch, label=edge_lab))
   print(p2)
 
+}
+
+
+# rBART_CV ----------------------------------------------------------------
+
+rBART_CV = function(X, y, folds = 5, num_trees = 2, ...) {
+  # Run rBART with k-fold cross validation
+  fold_id = sample(1:folds, size = length(y), replace=TRUE)
+  
+  # Create holder for predictions
+  oob_predictions = rep(NA, length(y))
+  # Holder for trees
+  all_rBART_runs = vector('list', folds)
+  
+  # Now loop through and create new predictions
+  for (i in 1:folds) {
+    cat('Running fold', i,'of',folds,'\n')
+    X_in = X[fold_id !=i, , drop = FALSE]
+    X_out = X[fold_id == i, , drop = FALSE]
+    y_in = y[fold_id != i]
+    y_out = y[fold_id ==i]
+    
+    all_rBART_runs[[i]] = rBART(X_in, y_in, 
+                                num_trees = num_trees, ...)
+    oob_predictions[fold_id == i] = predict_rBART(newX = X_out, 
+                                               all_rBART_runs[[i]],
+                                               type = 'mean')
+  }
+
+  # Return output
+  return(list(all_rBART_runs = all_rBART_runs,
+              oob_predictions = oob_predictions,
+              fold_id = fold_id))
 }

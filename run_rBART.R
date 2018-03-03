@@ -32,14 +32,17 @@ y = scale(data[,1])[,1]
 
 source('rBART.R')
 set.seed(123)
-rBART_out = rBART(X, y, num_trees = 2, 
-                  MCMC = list(iter = 10,
-                              burn = 0,
-                              thin = 1))
+rBART_out = rBART(X, y, num_trees = 2)#, 
+                  # MCMC = list(iter = 10,
+                  #             burn = 0,
+                  #             thin = 1))
 
 # Plot posterior sigma and compare with BARTMachine
 # plot(rBART_out$sigma, ylim = range(c(rBART_out$sigma, sigma_bartm)))
 # points(sigma_bartm, col = 'blue')
+
+# Plot the log likelihood history
+plot(rBART_out$log_lik)
 
 # Compare predictions from truth
 y_hat_rBART = apply(rBART_out$y_hat, 2, 'mean')
@@ -56,10 +59,10 @@ pred_y_rBART = predict_rBART(X, rBART_out, type = 'mean')
 plot(pred_y_rBART, y_hat_rBART) # Should be identical
 abline(a = 0, b = 1)
 
+# Tree plotter 
+plot_tree(rBART_out, horiz = FALSE)
 
-# Tree plotter ------------------------------------------------------------
-
-source('rBART.R')
-plot_tree(rBART_out, iter = 5, tree_num = 1, horiz = FALSE)
-rBART_out$trees[[5]][[1]]$tree_matrix
-
+# 5-fold CV
+rBART_out_CV = rBART_CV(X, y, num_trees = 5, folds = 10)
+plot(y, rBART_out_CV$oob_predictions)
+abline(a = 0, b = 1)

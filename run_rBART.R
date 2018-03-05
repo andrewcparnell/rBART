@@ -32,10 +32,10 @@ y = scale(data[,1])[,1]
 
 source('rBART.R')
 set.seed(123)
-rBART_out = rBART(X, y, num_trees = 2)#, 
-                  # MCMC = list(iter = 10,
-                  #             burn = 0,
-                  #             thin = 1))
+rBART_out = rBART(X, y, num_trees = 2)
+                  # MCMC = list(iter = 100,
+                  #            burn = 0,
+                  #            thin = 1))
 
 # Plot posterior sigma and compare with BARTMachine
 # plot(rBART_out$sigma, ylim = range(c(rBART_out$sigma, sigma_bartm)))
@@ -58,6 +58,8 @@ abline(a = 0, b = 1)
 pred_y_rBART = predict_rBART(X, rBART_out, type = 'mean')
 plot(pred_y_rBART, y_hat_rBART) # Should be identical
 abline(a = 0, b = 1)
+
+plot(rBART_out$sigma)
 
 # Tree plotter 
 plot_tree(rBART_out, horiz = FALSE)

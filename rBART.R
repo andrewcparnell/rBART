@@ -73,7 +73,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
       tree_store[[curr]] = curr_trees
       sigma_store[curr] = sigma
       y_hat_store[curr,] = predictions
-      log_lik_store[curr] = log_lik
+      #log_lik_store[curr] = log_lik
     }
     
     # Start looping through trees
@@ -107,10 +107,12 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                           current_partial_residuals,
                                           tau, 
                                           tau_mu)
+    
       old_log_lik = tree_full_conditional(curr_trees[[j]], 
                                           current_partial_residuals,
                                           tau, 
                                           tau_mu)
+
       new_log_prior = get_tree_prior(new_trees[[j]], alpha, beta)
       old_log_prior = get_tree_prior(curr_trees[[j]], alpha, beta)
 
@@ -270,13 +272,13 @@ grow_tree = function(X, y, curr_tree, node_min_size) {
                          prob = as.integer(terminal_node_size > node_min_size)) # Choose which node to split, set prob to zero for any nodes that are too small
   
   # Choose a split variable uniformly from all columns
-  split_variable = sample(1:ncol(X), 1)
+  split_variable = 1#sample(1:ncol(X), 1)
   # Choose a split value from the range of the current node but stop it from choosing empty nodex
   low_bound = min(X[new_tree$node_indices == node_to_split,
                     split_variable]) + .Machine$double.eps
   high_bound = max(X[new_tree$node_indices == node_to_split,
                     split_variable]) - .Machine$double.eps
-  split_value = runif(1, low_bound, high_bound)
+  split_value = 0.5#runif(1, low_bound, high_bound)
 
   curr_parent = new_tree$tree_matrix[node_to_split, 'parent'] # Make sure to keep the current parent in there. Will be NA if at the root node
   new_tree$tree_matrix[node_to_split,1:6] = c(0, # Now not temrinal
@@ -573,13 +575,20 @@ tree_full_conditional = function(tree, R, tau, tau_mu) {
   
   # Get sum of residuals and sum of residuals squared within each terminal node
   sumRsq = aggregate(R, by = list(tree$node_indices), function(x) sum(x^2))[,2]
-  sumR = aggregate(R, by = list(tree$node_indices), sum)[,2]
+  #sumR = aggregate(R, by = list(tree$node_indices), sum)[,2]
+  Rbar = aggregate(R, by = list(tree$node_indices), mean)[,2]
   
   # Now calculate the log posterior
-  log_post = sum(0.5 * nj * log(tau) + 
-    0.5 * log( tau_mu / (tau_mu + nj * tau)) -
-    0.5 * tau * (sumRsq - tau * sumR^2 / (tau_mu + nj * tau) ) )
+  # log_post = sum(0.5 * nj * log(tau) + 
+  #   0.5 * log( tau_mu / (tau_mu + nj * tau)) -
+  #   0.5 * tau * (sumRsq - tau * sumR^2 / (tau_mu + nj * tau) ) )
  
+  P1 = 0.5 * sum(nj) * log(tau)
+  P2 = 0.5 * sum( log( tau_mu / (tau_mu + nj * tau)))
+  P3 = -0.5 * tau * sum( sumRsq )
+  P4 = 0.5 * tau * sum ( tau * (nj^2 * Rbar^2) / (tau_mu + nj * tau) )
+  log_post =  P1 + P2 + P3 + P4
+  
   return(log_post) 
 }
 
@@ -633,11 +642,11 @@ get_tree_prior = function(tree, alpha, beta) {
   # Need to work out the depth of the tree
   # First find the level of each node, then the depth is the maximum of the level
   level = rep(NA, nrow(tree$tree_matrix))
-  level[1] = 1 # First row always level 1
+  level[1] = 0 # First row always level 0
 
   # Escpae quickly if tree is just a stump
   if(nrow(tree$tree_matrix) == 1) {
-    return(log(alpha) - beta * log(2)) # Tree depth is 1 
+    return(log(alpha)) # Tree depth is 0 
   }
   
   for(i in 2:nrow(tree$tree_matrix)) {
@@ -646,6 +655,7 @@ get_tree_prior = function(tree, alpha, beta) {
     # This child must have a level one greater than it's current parent
     level[i] = level[curr_parent] + 1
   }
+
   # Tree depth is max level
   tree_depth = max(level)
   

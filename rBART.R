@@ -32,6 +32,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   # Extract initial values
   tau = inits$tau
   sigma = 1/sqrt(tau)
+  log_lik = 0
   
   # Extract MCMC details
   iter = MCMC$iter # Number of iterations
@@ -73,7 +74,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
       tree_store[[curr]] = curr_trees
       sigma_store[curr] = sigma
       y_hat_store[curr,] = predictions
-      #log_lik_store[curr] = log_lik
+      log_lik_store[curr] = log_lik
     }
     
     # Start looping through trees
@@ -272,14 +273,19 @@ grow_tree = function(X, y, curr_tree, node_min_size) {
                          prob = as.integer(terminal_node_size > node_min_size)) # Choose which node to split, set prob to zero for any nodes that are too small
   
   # Choose a split variable uniformly from all columns
-  split_variable = 1#sample(1:ncol(X), 1)
+  split_variable = sample(1:ncol(X), 1)
   # Choose a split value from the range of the current node but stop it from choosing empty nodex
-  low_bound = min(X[new_tree$node_indices == node_to_split,
-                    split_variable]) + .Machine$double.eps
-  high_bound = max(X[new_tree$node_indices == node_to_split,
-                    split_variable]) - .Machine$double.eps
-  split_value = 0.5#runif(1, low_bound, high_bound)
-
+  # low_bound = min(X[new_tree$node_indices == node_to_split,
+  #                   split_variable]) + .Machine$double.eps
+  # high_bound = max(X[new_tree$node_indices == node_to_split,
+  #                   split_variable]) - .Machine$double.eps
+  # split_value = runif(1, low_bound, high_bound)
+  
+  # Alternatively follow BARTMachine and choose a split value using sample on the internal values of the available
+  available_values = sort(X[new_tree$node_indices == node_to_split,
+                       split_variable])
+  split_value = sample(available_values[-c(1,length(available_values))], 1)
+  
   curr_parent = new_tree$tree_matrix[node_to_split, 'parent'] # Make sure to keep the current parent in there. Will be NA if at the root node
   new_tree$tree_matrix[node_to_split,1:6] = c(0, # Now not temrinal
                                                nrow(new_tree$tree_matrix) - 1, # child_left is penultimate row
@@ -575,19 +581,20 @@ tree_full_conditional = function(tree, R, tau, tau_mu) {
   
   # Get sum of residuals and sum of residuals squared within each terminal node
   sumRsq = aggregate(R, by = list(tree$node_indices), function(x) sum(x^2))[,2]
-  #sumR = aggregate(R, by = list(tree$node_indices), sum)[,2]
-  Rbar = aggregate(R, by = list(tree$node_indices), mean)[,2]
+  sumR = aggregate(R, by = list(tree$node_indices), sum)[,2]
+  #Rbar = aggregate(R, by = list(tree$node_indices), mean)[,2]
   
   # Now calculate the log posterior
-  # log_post = sum(0.5 * nj * log(tau) + 
-  #   0.5 * log( tau_mu / (tau_mu + nj * tau)) -
-  #   0.5 * tau * (sumRsq - tau * sumR^2 / (tau_mu + nj * tau) ) )
- 
-  P1 = 0.5 * sum(nj) * log(tau)
-  P2 = 0.5 * sum( log( tau_mu / (tau_mu + nj * tau)))
-  P3 = -0.5 * tau * sum( sumRsq )
-  P4 = 0.5 * tau * sum ( tau * (nj^2 * Rbar^2) / (tau_mu + nj * tau) )
-  log_post =  P1 + P2 + P3 + P4
+  log_post = sum(0.5 * nj * log(tau) +
+    0.5 * log( tau_mu / (tau_mu + nj * tau)) -
+    0.5 * tau * (sumRsq - tau * sumR^2 / (tau_mu + nj * tau) ) )
+
+  # New Mahdi version 
+  # P1 = 0.5 * sum(nj) * log(tau)
+  # P2 = 0.5 * sum( log( tau_mu / (tau_mu + nj * tau)))
+  # P3 = -0.5 * tau * sum( sumRsq )
+  # P4 = 0.5 * tau * sum ( tau * (nj^2 * Rbar^2) / (tau_mu + nj * tau) )
+  # log_post =  P1 + P2 + P3 + P4
   
   return(log_post) 
 }
@@ -648,19 +655,21 @@ get_tree_prior = function(tree, alpha, beta) {
   if(nrow(tree$tree_matrix) == 1) {
     return(log(alpha)) # Tree depth is 0 
   }
-  
+
   for(i in 2:nrow(tree$tree_matrix)) {
     # Find the current parent
     curr_parent = tree$tree_matrix[i,'parent']
     # This child must have a level one greater than it's current parent
     level[i] = level[curr_parent] + 1
   }
-
-  # Tree depth is max level
-  tree_depth = max(level)
   
-  # Calc and return log prior according to BART paper
-  log_prior = log(alpha) - beta * log(1 + tree_depth)
+  # Only compute for the internal nodes
+  internal_nodes = which(tree$tree_matrix[,'terminal'] == 0)
+  log_prior = log(alpha)
+  for(i in 1:length(internal_nodes)) {
+    log_prior = log_prior + log(alpha) - beta * log(1 + level[internal_nodes[i]]) 
+  }
+  
   return(log_prior)
   
 }
@@ -740,7 +749,7 @@ predict_rBART = function(newX, rBART_posterior,
   # Now loop through iterations and get predictions
   for (i in 1:n_its) {
     # Get current set of trees
-    curr_trees = rBART_out$trees[[i]]
+    curr_trees = rBART_posterior$trees[[i]]
     # Use get_predictions function to get predictions
     y_hat_mat[i,] = get_predictions(curr_trees, 
                                     newX, 
@@ -890,8 +899,8 @@ rBART_CV = function(X, y, folds = 5, num_trees = 2, ...) {
     all_rBART_runs[[i]] = rBART(X_in, y_in, 
                                 num_trees = num_trees, ...)
     oob_predictions[fold_id == i] = predict_rBART(newX = X_out, 
-                                               all_rBART_runs[[i]],
-                                               type = 'mean')
+                                                  all_rBART_runs[[i]],
+                                                  type = 'mean')
   }
 
   # Return output

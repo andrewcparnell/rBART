@@ -1,0 +1,116 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage{graphics}
+\usepackage{amsmath}
+\usepackage{indentfirst}
+\usepackage{setspace}
+
+\DeclareMathOperator{\var}{var}
+\DeclareMathOperator{\cov}{cov}
+\newcommand{\bm}[1]{\mbox{\boldmath $ #1 $}}
+\newcommand{\EE}{\mathrm{I\!E\!}}
+\newcommand{\RR}{\mathrm{I\!R\!}}
+\parindent=0in
+
+\doublespacing
+\pagenumbering{arabic}
+
+\begin{document}
+
+\title{BART MCMC updates}
+\author{Andrew C. Parnell}
+\maketitle
+
+Suppose there are $n$ observations in a terminal node and suppose that the (partial) residuals in this terminal node are denoted $R_1, \ldots, R_n$. The prior distribution for these residuals is:
+$$ R_1, \ldots, R_n | \mu, \tau \sim N(\mu, \tau^{-1})$$
+Furthermore the prior on $\mu$ is:
+$$\mu \sim N(0, \tau_{\mu}^{-1})$$
+
+Using $\pi$ to denote a probability distribution, we want to find:
+\begin{align*}
+\pi(R_1, \ldots, R_n| \sigma) &= \int \pi(R_1, \ldots, R_n| \mu, \tau) \pi(\mu) \partial \mu \\
+&\propto \prod_{i=1}^n \tau^{1/2} e^{-\frac{\tau}{2} (R_i - \mu)^2} \tau_{\mu}^{1/2} e^{-\frac{\tau_\mu}{2} \mu^2 } \partial \mu \\
+&= \int \tau^{n/2} e^{-\frac{\tau}{2} \sum (R_i - \mu)^2} \tau_{\mu}^{1/2} e^{-\frac{\tau_\mu}{2} \mu^2 } \partial \mu \\
+&= \int \tau^{n/2} \tau_{\mu}^{1/2} e^{-\frac{1}{2} \left[ \tau \left\{ \sum R_i^2 + n \mu^2 - 2 \mu n \bar{R} \right\} + \tau_\mu \mu^2 \right]} \partial \mu \\
+&= \tau^{n/2} \tau_{\mu}^{1/2} e^{-\frac{1}{2} \left[ \tau \sum R_i^2 \right]} \int e^{-\frac{1}{2} Q} \partial \mu 
+\end{align*}
+where 
+\begin{align*}
+Q &= \tau n \mu^2 - 2\tau n \mu \bar{R} + \tau_\mu \mu^2 \\
+&= (\tau_\mu + n \tau) \mu^2 - 2\tau n \mu \bar{R} \\
+&= (\tau_\mu + n \tau) \left[ \mu^2 - \frac{2 \tau n \mu \bar{R}}{ \tau_\mu + n \tau } \right]\\
+&= (\tau_\mu + n \tau) \left[ \left( \mu - \frac{2 \tau n \bar{R}}{ \tau_\mu + n \tau } \right)^2 - \left( \frac{ \tau n \bar{R} }{ \tau_\mu + n \tau} \right)^2 \right]\\
+&= (\tau_\mu + n \tau) \left( \mu - \frac{2 \tau n \bar{R}}{ \tau_\mu + n \tau } \right)^2 - \frac{(n \tau \bar{R})^2}{ \tau_\mu + n \tau}\\
+\end{align*}
+so therefore:
+\begin{align*}
+ \int e^{-\frac{1}{2} Q} \partial \mu &= \int \exp \left[  - \frac{\tau_\mu + n \tau}{2} \left( \mu - \frac{2 \tau n \bar{R}}{ \tau_\mu + n \tau } \right)^2 + \frac{(n \tau \bar{R})^2}{2( \tau_\mu + n \tau)} \right] \partial \mu \\
+\propto &  \exp \left[ \frac{1}{2} \frac{ (\tau n \bar{R})^2 }{ \tau_\mu + n \tau } \right] (\tau_\mu + n \tau)^{-1/2}
+\end{align*}
+
+And finally:
+\begin{align*}
+\pi(R_1, \ldots, R_n | \tau) \propto & (\tau_\mu + n \tau)^{-1/2} \tau^{n/2} \tau_\mu^{1/2} \exp \left[ \frac{1}{2} \frac{ (\tau n \bar{R})^2 }{ \tau_\mu + n \tau } \right] \exp \left[ -\frac{\tau}{2} \sum R_i^2 \right] \\
+&= \tau^{n/2} \left( \frac{\tau_\mu}{\tau_\mu + n \tau} \right)^{1/2} \exp \left[ -\frac{\tau}{2} \left\{ \sum R_i^2 - \frac{ \tau (n\bar{R})^2 }{ \tau_\mu + n \tau } \right\} \right]
+\end{align*}
+
+\subsection*{Including multiple terminal nodes}
+
+When we put back in terminal nodes we write $R_{ji}$ where $j$ is the terminal node and $i$ is still the observation, so in terminal node $j$ we have partial residuals $R_{j1}, \ldots, R_{jn_j}$. When we have $j=1,\ldots,b$ terminal nodes the full conditional distribution is then:
+
+\begin{align*}
+\prod_{j=1}^b \pi(R_{j1}, \ldots, R_{jn_j} | \tau) &\propto \prod_{j=1}^b \left\{ \tau^{n_j/2} \left( \frac{\tau_\mu}{\tau_\mu + n_j \tau} \right)^{1/2} \exp \left[ -\frac{\tau}{2} \left\{ \sum_{i=1}^{n_j} R_{ji}^2 - \frac{ \tau (n_j \bar{R}_j)^2 }{ \tau_\mu + n_j \tau } \right\} \right] \right\}
+\end{align*}
+which on the log scale gives:
+\begin{align*}
+\sum_{j=1}^b \left\{ \frac{n_j}{2} \log(\tau) + \frac{1}{2} \log \left( \frac{\tau_\mu}{\tau_\mu + n_j \tau} \right) - \frac{\tau}{2} \left[ \sum_{i=1}^{n_j} R_{ji}^2 - \frac{ \tau (n_j \bar{R}_j)^2 }{ \tau_\mu + n_j \tau } \right] \right\}
+\end{align*}
+
+This can be simplified further to give:
+\begin{align*}
+\frac{n}{2} \log(\tau) + \frac{1}{2} \sum_{j=1}^b \log \left( \frac{\tau_\mu}{\tau_\mu + n_j \tau} \right) - \frac{\tau}{2} \sum_{j=1}^b 
+\sum_{i=1}^{n_j} R_{ji}^2 + \frac{\tau^2}{2} \sum_{j=1}^b \frac{ S_j^2 }{ \tau_\mu + n_j \tau }
+\end{align*}
+
+where $S_j = \sum_{i=1}^{n_j} R_{ji}$
+
+
+\subsection*{Updating $\mu$}
+
+The full conditional for $\mu_{j}$ (the terminal node parameters for node $j$) is similar to the above but without the integration:
+
+\begin{align*}
+\pi(\mu_{j}|\ldots)  &\propto \prod_{i=1}^{n_j}  \tau^{1/2} e^{-\frac{\tau}{2} (R_{ji} - \mu_{j})^2} \tau_{\mu}^{1/2} e^{-\frac{\tau_\mu}{2} \mu_{j}^2 }\\
+&\propto e^{-\frac{\tau}{2} \sum_{i=1}^{n_j} (R_{ji} - \mu_{j})^2} e^{-\frac{\tau_\mu}{2} \mu_{j}^2 } \\ 
+&\propto e^{-\frac{\tau}{2} \left[ n_j \mu_{j}^2 - 2 \mu_j  \sum_{i=1}^{n_j} R_{ji} \right] - \frac{\tau_\mu}{2} \mu_j^2}\\
+&\propto e^{-\frac{Q}{2}}
+\end{align*}
+Now:
+\begin{align*}
+Q &= n_j \tau \mu_j^2 - 2\mu_j \tau S_j + \tau_\mu \mu_j^2\\
+&= (n_j \tau + \tau_\mu) \mu_j^2 - 2 \tau \mu_j S_j \\
+&= (n_j \tau + \tau_\mu) \left[ \mu_j^2 - \frac{2 \tau \mu_j S_j}{n_j \tau + \tau_\mu} \right] \\
+&\propto (n_j \tau + \tau_\mu) \left[ \mu_j - \frac{\tau \mu_j S_j}{n_j \tau + \tau_\mu} \right]^2
+\end{align*}
+so therefore:
+\begin{align*}
+\mu_j| \ldots \sim N \left( \frac{\tau S_j}{n_j \tau + \tau_\mu} , (n_j \tau + \tau_\mu)^2 \right)
+\end{align*}
+
+\subsection*{Update for $\tau$}
+
+I am using the scale/rate parameterisation of the gamma with prior $\tau \sim Ga(\nu/2, \nu \lambda / 2)$. Letting $\mu_i$ be the prediction of the $i$th observation we get:
+\begin{align*}
+\pi(\tau | \ldots) &\propto \prod_{i=1}^n \tau^{1/2} e^{-\frac{\tau}{2} (y_i - \mu_i)^2} \tau^{\nu/2} e^{-\tau \nu \lambda / 2}
+\end{align*}
+Letting $S = \sum_{i=1}^n (y_i - \mu_i)^2$ we get:
+\begin{align*}
+\pi(\tau | \ldots) &\propto \tau^{n/2} e^{-\frac{\tau}{2} S} \tau^{\nu/2} e^{-\tau \nu \lambda / 2}\\
+&= \tau^{(n + \nu)/2} e^{-\frac{\tau}{2} (S + \nu \lambda)}
+\end{align*}
+so
+\begin{align*}
+\tau | \ldots \sim Ga \left( \frac{n + \nu}{2}, \frac{S + \nu \lambda}{2} \right)
+\end{align*}
+\end{document}

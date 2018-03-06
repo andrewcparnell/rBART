@@ -66,7 +66,39 @@ plot(rBART_out$sigma)
 # Tree plotter 
 plot_tree(rBART_out, horiz = TRUE)
 
+stop()
+
+# WARNING: next part slow -------------------------------------------------
+
 # 5-fold CV
-rBART_out_CV = rBART_CV(X, y, num_trees = 2, folds = 5)
+rBART_out_CV = rBART_CV(X, y, num_trees = 10, folds = 5,
+                        MCMC = list(iter = 1250,
+                                   burn = 250,
+                                   thin = 1))
 plot(y, rBART_out_CV$oob_predictions)
 abline(a = 0, b = 1)
+cor(y, rBART_out_CV$oob_predictions)
+
+# 5-fold CV on BARTMachine
+bartM_out_CV_pred = rep(NA, length(y))
+fold_id = rBART_out_CV$fold_id
+folds = 5
+all_bartM_runs = vector('list', folds)
+for (i in 1:folds) {
+  cat('Running fold', i,'of',folds,'\n')
+  X_in = X[fold_id !=i, , drop = FALSE]
+  X_out = X[fold_id == i, , drop = FALSE]
+  y_in = y[fold_id != i]
+  y_out = y[fold_id ==i]
+  
+  all_bartM_runs[[i]] = bartMachine(X_in, y_in, 
+                                    num_trees = 10)
+  bart_machine_pred = bart_machine_get_posterior(bart_machine,
+                                                 new_data = X_out)
+  bartM_out_CV_pred[fold_id == i] = bart_machine_pred$y_hat
+}
+
+plot(y,bartM_out_CV_pred)
+points(y, rBART_out_CV$oob_predictions, pch = 19)
+abline(a = 0, b = 1)
+cor(y,bartM_out_CV_pred)

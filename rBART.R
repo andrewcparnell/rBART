@@ -108,7 +108,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                           current_partial_residuals,
                                           tau, 
                                           tau_mu)
-    
+
       old_log_lik = tree_full_conditional(curr_trees[[j]], 
                                           current_partial_residuals,
                                           tau, 
@@ -580,23 +580,21 @@ tree_full_conditional = function(tree, R, tau, tau_mu) {
   nj = tree$tree_matrix[which_terminal,'node_size']
   
   # Get sum of residuals and sum of residuals squared within each terminal node
-  sumRsq = aggregate(R, by = list(tree$node_indices), function(x) sum(x^2))[,2]
-  sumR = aggregate(R, by = list(tree$node_indices), sum)[,2]
-  #Rbar = aggregate(R, by = list(tree$node_indices), mean)[,2]
-  
-  # Now calculate the log posterior
-  log_post = sum(0.5 * nj * log(tau) +
-    0.5 * log( tau_mu / (tau_mu + nj * tau)) -
-    0.5 * tau * (sumRsq - tau * sumR^2 / (tau_mu + nj * tau) ) )
+  sumRsq_j = aggregate(R, by = list(tree$node_indices), function(x) sum(x^2))[,2]
+  S_j = aggregate(R, by = list(tree$node_indices), sum)[,2]
 
-  # New Mahdi version 
-  # P1 = 0.5 * sum(nj) * log(tau)
-  # P2 = 0.5 * sum( log( tau_mu / (tau_mu + nj * tau)))
-  # P3 = -0.5 * tau * sum( sumRsq )
-  # P4 = 0.5 * tau * sum ( tau * (nj^2 * Rbar^2) / (tau_mu + nj * tau) )
-  # log_post =  P1 + P2 + P3 + P4
+  # Now calculate the log posterior
+  log_post = 0.5 * length(R) * log(tau) + sum(0.5 * log( tau_mu / (tau_mu + nj * tau)) -
+    0.5 * tau * (sumRsq_j - tau * S_j^2 / (tau_mu + nj * tau) ) )
+  return(log_post)
   
-  return(log_post) 
+  # New Mahdi version - slower
+  # P1 = 0.5 * length(R) * log(tau)
+  # P2 = 0.5 * sum( log( tau_mu / (tau_mu + nj * tau)))
+  # P3 = -0.5 * tau * sum( sumRsq_j )
+  # P4 = 0.5 * (tau^2) * sum ( (S_j^2) / (tau_mu + nj * tau) )
+  # 
+  # return(P1 + P2 + P3 + P4) 
 }
 
 

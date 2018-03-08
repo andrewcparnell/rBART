@@ -61,8 +61,6 @@ pred_y_rBART = predict_rBART(X, rBART_out, type = 'mean')
 plot(pred_y_rBART, y_hat_rBART) # Should be identical
 abline(a = 0, b = 1)
 
-plot(rBART_out$sigma)
-
 # Tree plotter 
 plot_tree(rBART_out, horiz = TRUE)
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/MacPorts 2017_1) (preloaded format=pdflatex 2017.10.5)  6 MAR 2018 10:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/MacPorts 2017_1) (preloaded format=pdflatex 2017.10.5)  8 MAR 2018 15:08
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -199,7 +199,7 @@ e
 [1
 
 {/opt/local/var/db/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
-[4] (./Maths_Dec17.aux) ) 
+[4] [5] (./Maths_Dec17.aux) ) 
 Here is how much of TeX's memory you used:
  2090 strings out of 494108
  28362 string characters out of 6155655
@@ -208,24 +208,24 @@ Here is how much of TeX's memory you used:
  8110 words of font info for 30 fonts, out of 8000000 for 9000
  430 hyphenation exceptions out of 8191
  39i,13n,25p,315b,187s stack positions out of 5000i,500n,10000p,200000b,80000s
-</opt/local/share/texmf-texlive/fonts/type1/public/ams
-fonts/cm/cmbx12.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts
-/cm/cmex10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cmex
-tra/cmex7.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cm
-mi10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi12.
-pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi5.pfb></
-opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi7.pfb></opt/lo
-cal/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></opt/local/sh
-are/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr12.pfb></opt/local/share/te
-xmf-texlive/fonts/type1/public/amsfonts/cm/cmr17.pfb></opt/local/share/texmf-te
-xlive/fonts/type1/public/amsfonts/cm/cmr5.pfb></opt/local/share/texmf-texlive/f
-onts/type1/public/amsfonts/cm/cmr7.pfb></opt/local/share/texmf-texlive/fonts/ty
-pe1/public/amsfonts/cm/cmsy10.pfb></opt/local/share/texmf-texlive/fonts/type1/p
-ublic/amsfonts/cm/cmsy7.pfb>
-Output written on Maths_Dec17.pdf (4 pages, 142998 bytes).
+</opt/local/share/texmf-texlive/fonts/type1/public
+/amsfonts/cm/cmbx12.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsf
+onts/cm/cmex10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/
+cmextra/cmex7.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/c
+m/cmmi10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmm
+i12.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi5.pf
+b></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi7.pfb></op
+t/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></opt/loca
+l/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr12.pfb></opt/local/shar
+e/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr17.pfb></opt/local/share/texm
+f-texlive/fonts/type1/public/amsfonts/cm/cmr5.pfb></opt/local/share/texmf-texli
+ve/fonts/type1/public/amsfonts/cm/cmr7.pfb></opt/local/share/texmf-texlive/font
+s/type1/public/amsfonts/cm/cmsy10.pfb></opt/local/share/texmf-texlive/fonts/typ
+e1/public/amsfonts/cm/cmsy7.pfb>
+Output written on Maths_Dec17.pdf (5 pages, 148150 bytes).
 PDF statistics:
- 73 PDF objects out of 1000 (max. 8388607)
- 52 compressed objects within 1 object stream
+ 76 PDF objects out of 1000 (max. 8388607)
+ 54 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

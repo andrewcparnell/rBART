@@ -113,4 +113,25 @@ so
 \begin{align*}
 \tau | \ldots \sim Ga \left( \frac{n + \nu}{2}, \frac{S + \nu \lambda}{2} \right)
 \end{align*}
+
+\subsection*{Tree prior}
+
+The tree prior used by BARTMachine says that the probability of a node being non-terminal is:
+\begin{align*}
+P(\mbox{node is non-terminal}) &= \alpha (1 + d)^{-\beta}
+\end{align*}
+So the probability of a node being terminal is 1 minus this. A stump just has probability 1 - $\alpha$. For Bart Machine $\alpha = 0.95$ and $\beta = 2$
+
+Thus for a tree with $k$ non-terminal nodes and $b$ terminal nodes we have:
+\begin{align*}
+P &= \prod_{i=1}^b \left[ 1 - \alpha (1 + d^t_i)^{-\beta} \right] \prod_{i=1}^k \left[ \alpha (1 + d^{nt}_i)^{-\beta} \right] \\
+\end{align*}
+where $d^t_i$ is the depth of the $i$th terminal node and $d^{nt}_i$ is the depth of the $i$th non-terminal node.
+On the log scale this gives:
+\begin{align*}
+\log P &= \sum_{i=1}^b \left[ \log \left(1 - \alpha(1 + d^t_i)^{-\beta} \right) \right] + \sum_{i=1}^k \left[ \log(\alpha) - \beta \log(1 + d^{nt}_i) \right] \\
+\end{align*}
+
 \end{document}
+
+

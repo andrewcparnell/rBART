@@ -587,14 +587,14 @@ tree_full_conditional = function(tree, R, tau, tau_mu) {
   log_post = 0.5 * length(R) * log(tau) + sum(0.5 * log( tau_mu / (tau_mu + nj * tau)) -
     0.5 * tau * (sumRsq_j - tau * S_j^2 / (tau_mu + nj * tau) ) )
   return(log_post)
-  
+  # 
   # New Mahdi version - slower
   # P1 = 0.5 * length(R) * log(tau)
   # P2 = 0.5 * sum( log( tau_mu / (tau_mu + nj * tau)))
   # P3 = -0.5 * tau * sum( sumRsq_j )
   # P4 = 0.5 * (tau^2) * sum ( (S_j^2) / (tau_mu + nj * tau) )
   # 
-  # return(P1 + P2 + P3 + P4) 
+  # return(P1 + P2 + P3 + P4)
 }
 
 
@@ -651,7 +651,7 @@ get_tree_prior = function(tree, alpha, beta) {
 
   # Escpae quickly if tree is just a stump
   if(nrow(tree$tree_matrix) == 1) {
-    return(log(alpha)) # Tree depth is 0 
+    return(log(1 - alpha)) # Tree depth is 0 
   }
 
   for(i in 2:nrow(tree$tree_matrix)) {
@@ -663,10 +663,15 @@ get_tree_prior = function(tree, alpha, beta) {
   
   # Only compute for the internal nodes
   internal_nodes = which(tree$tree_matrix[,'terminal'] == 0)
-  log_prior = log(alpha)
+  log_prior = 0
   for(i in 1:length(internal_nodes)) {
     log_prior = log_prior + log(alpha) - beta * log(1 + level[internal_nodes[i]]) 
-  }
+  } 
+  # Now add on terminal nodes
+  terminal_nodes = which(tree$tree_matrix[,'terminal'] == 1)
+  for(i in 1:length(terminal_nodes)) {
+    log_prior = log_prior + log(1 - alpha * ((1 + level[terminal_nodes[i]])^(-beta)))
+  } 
   
   return(log_prior)
   

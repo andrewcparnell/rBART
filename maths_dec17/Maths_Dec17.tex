@@ -5,6 +5,7 @@
 \usepackage{amsmath}
 \usepackage{indentfirst}
 \usepackage{setspace}
+\usepackage[]{algorithm2e}
 
 \DeclareMathOperator{\var}{var}
 \DeclareMathOperator{\cov}{cov}
@@ -21,6 +22,27 @@
 \title{BART MCMC updates}
 \author{Andrew C. Parnell}
 \maketitle
+
+
+\section*{Overall algorithm details}
+
+\begin{algorithm}[H]
+ \KwData{this text}
+ \KwResult{how to write algorithm with \LaTeX2e }
+ initialization\;
+ \While{not at end of this document}{
+  read current\;
+  \eIf{understand}{
+   go to next section\;
+   current section becomes this one\;
+   }{
+   go back to the beginning of current section\;
+  }
+ }
+ \caption{How to write algorithms}
+\end{algorithm}
+
+\section{Updating trees}
 
 Suppose there are $n$ observations in a terminal node and suppose that the (partial) residuals in this terminal node are denoted $R_1, \ldots, R_n$. The prior distribution for these residuals is:
 $$ R_1, \ldots, R_n | \mu, \tau \sim N(\mu, \tau^{-1})$$
@@ -100,7 +122,7 @@ so therefore:
 
 \subsection*{Update for $\tau$}
 
-I am using the scale/rate parameterisation of the gamma with prior $\tau \sim Ga(\nu/2, \nu \lambda / 2)$. Letting $\mu_i$ be the prediction of the $i$th observation we get:
+I am using the shape/rate parameterisation of the gamma with prior $\tau \sim Ga(\nu/2, \nu \lambda / 2)$. Letting $\mu_i$ be the prediction of the $i$th observation we get:
 \begin{align*}
 \pi(\tau | \ldots) &\propto \prod_{i=1}^n \tau^{1/2} e^{-\frac{\tau}{2} (y_i - \mu_i)^2} \tau^{\nu/2} e^{-\tau \nu \lambda / 2}
 \end{align*}

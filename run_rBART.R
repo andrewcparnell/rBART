@@ -69,10 +69,7 @@ stop()
 # WARNING: next part slow -------------------------------------------------
 
 # 5-fold CV
-rBART_out_CV = rBART_CV(X, y, num_trees = 10, folds = 5,
-                        MCMC = list(iter = 1250,
-                                   burn = 250,
-                                   thin = 1))
+rBART_out_CV = rBART_CV(X, y, num_trees = 10, folds = 5)
 plot(y, rBART_out_CV$oob_predictions)
 abline(a = 0, b = 1)
 cor(y, rBART_out_CV$oob_predictions)

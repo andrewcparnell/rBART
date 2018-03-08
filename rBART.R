@@ -13,8 +13,8 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                nu = 3,
                                lambda = 0.1), 
                  inits = list(tau = 1), # Initial values list
-                 MCMC = list(iter = 1000, # Number of iterations
-                             burn = 200, # Size of burn in
+                 MCMC = list(iter = 1250, # Number of iterations
+                             burn = 250, # Size of burn in
                              thin = 1) # Amount of thinning
                  ) { 
   
@@ -76,7 +76,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
       y_hat_store[curr,] = predictions
       log_lik_store[curr] = log_lik
     }
-    
+
     # Start looping through trees
     for (j in 1:num_trees) {
       
@@ -709,8 +709,10 @@ simulate_mu = function(tree, R, tau, tau_mu) {
 # Update tau --------------------------------------------------------------
 
 update_tau = function(S, nu, lambda, n) {
-  # THIS NEEDS TO BE FIXED BY DOING THE MATHS FIRST OF ALL
-  tau = rgamma(1, (nu + n) / 2, (S + nu * lambda) / 2)
+  # Update from maths in Github folder
+  tau = rgamma(1, shape = (nu + n) / 2, rate = (S + nu * lambda) / 2)
+  # Alternative
+  #tau = rgamma(1, shape = (nu + n) / 2, scale = 2 / (S + nu * lambda))
   
   return(tau)
 }

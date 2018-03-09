@@ -33,9 +33,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   tau = inits$tau
   sigma = 1/sqrt(tau)
   log_lik = 0
-  old_log_lik = rep(NA, num_trees)
-  old_log_prior = rep(NA, num_trees)
-  
+
   # Extract MCMC details
   iter = MCMC$iter # Number of iterations
   burn = MCMC$burn # Size of burn in
@@ -110,19 +108,17 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                           current_partial_residuals,
                                           tau, 
                                           tau_mu)
-
-      if (i==1) { # Only need to calculate old log lik on first iteration
-        old_log_lik[j] = tree_full_conditional(curr_trees[[j]], 
+      new_log_prior = get_tree_prior(new_trees[[j]], alpha, beta)
+      
+      old_log_lik = tree_full_conditional(curr_trees[[j]], 
                                                current_partial_residuals,
                                                tau, 
                                                tau_mu)
-        old_log_prior[j] = get_tree_prior(curr_trees[[j]], alpha, beta)
-      }
+      old_log_prior = get_tree_prior(curr_trees[[j]], alpha, beta)
       
-      new_log_prior = get_tree_prior(new_trees[[j]], alpha, beta)
 
       # If accepting a new tree update all relevant parts
-      accept_ratio = exp(new_log_lik + new_log_prior - old_log_lik[j] - old_log_prior[j])
+      accept_ratio = exp(new_log_lik + new_log_prior - old_log_lik - old_log_prior)
       
       if(accept_ratio > runif(1)) {
         # Make changes if accept
@@ -132,10 +128,6 @@ rBART = function(X, y, # X is the feature matrix, y is the target
         curr_trees[[j]] = simulate_mu(new_trees[[j]], 
                                       current_partial_residuals, 
                                       tau, tau_mu)
-        
-        # Update full conditionals and prior
-        old_log_lik[j] = new_log_lik
-        old_log_prior[j] = new_log_prior
         
       } # End of accept if statement
       
@@ -291,7 +283,7 @@ grow_tree = function(X, y, curr_tree, node_min_size) {
   # split_value = runif(1, low_bound, high_bound)
   
   # Alternatively follow BARTMachine and choose a split value using sample on the internal values of the available
-  available_values = sort(unqiue(X[new_tree$node_indices == node_to_split,
+  available_values = sort(unique(X[new_tree$node_indices == node_to_split,
                        split_variable]))
   split_value = sample(available_values[-c(1,length(available_values))], 1)
   

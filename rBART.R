@@ -33,8 +33,6 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   tau = inits$tau
   sigma = 1/sqrt(tau)
   log_lik = 0
-  old_log_lik = rep(NA, num_trees)
-  old_log_prior = rep(NA, num_trees)
   
   # Extract MCMC details
   iter = MCMC$iter # Number of iterations
@@ -111,27 +109,20 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                           tau, 
                                           tau_mu)
 
-      if (i==1) { # Only need to calculate old log lik on first iteration
-        old_log_lik[j] = tree_full_conditional(curr_trees[[j]], 
+      old_log_lik = tree_full_conditional(curr_trees[[j]], 
                                           current_partial_residuals,
                                           tau, 
                                           tau_mu)
-        old_log_prior[j] = get_tree_prior(curr_trees[[j]], alpha, beta)
-      }
-      
+
       new_log_prior = get_tree_prior(new_trees[[j]], alpha, beta)
-      
+      old_log_prior = get_tree_prior(curr_trees[[j]], alpha, beta)
 
       # If accepting a new tree update all relevant parts
-      accept_ratio = exp(new_log_lik + new_log_prior - old_log_lik[j] - old_log_prior[j])
+      accept_ratio = exp(new_log_lik + new_log_prior - old_log_lik - old_log_prior)
       
       if(accept_ratio > runif(1)) {
         # Make changes if accept
         curr_trees = new_trees
-        
-        # Update full conditionals and prior
-        old_log_lik[j] = new_log_lik
-        old_log_prior[j] = new_log_prior
         
         # Simulate mu for new trees
         curr_trees[[j]] = simulate_mu(new_trees[[j]], 

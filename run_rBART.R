@@ -35,6 +35,7 @@ rBART_out = rBART(X, y, num_trees = 2)#,
                   # MCMC = list(iter = 10000,
                   #            burn = 2000,
                   #            thin = 8))
+stop()
 
 # Plot posterior sigma and compare with BARTMachine
 plot(rBART_out$sigma, ylim = range(c(rBART_out$sigma, sigma_bartm)))

@@ -5,7 +5,7 @@
 \usepackage{amsmath}
 \usepackage{indentfirst}
 \usepackage{setspace}
-\usepackage[]{algorithm2e}
+%\usepackage[]{algorithm2e}
 
 \DeclareMathOperator{\var}{var}
 \DeclareMathOperator{\cov}{cov}
@@ -24,23 +24,23 @@
 \maketitle
 
 
-\section*{Overall algorithm details}
-
-\begin{algorithm}[H]
- \KwData{this text}
- \KwResult{how to write algorithm with \LaTeX2e }
- initialization\;
- \While{not at end of this document}{
-  read current\;
-  \eIf{understand}{
-   go to next section\;
-   current section becomes this one\;
-   }{
-   go back to the beginning of current section\;
-  }
- }
- \caption{How to write algorithms}
-\end{algorithm}
+%\section*{Overall algorithm details}
+%
+%\begin{algorithm}[H]
+% \KwData{this text}
+% \KwResult{how to write algorithm with \LaTeX2e }
+% initialization\;
+% \While{not at end of this document}{
+%  read current\;
+%  \eIf{understand}{
+%   go to next section\;
+%   current section becomes this one\;
+%   }{
+%   go back to the beginning of current section\;
+%  }
+% }
+% \caption{How to write algorithms}
+%\end{algorithm}
 
 \section{Updating trees}
 
@@ -117,7 +117,7 @@ Q &= n_j \tau \mu_j^2 - 2\mu_j \tau S_j + \tau_\mu \mu_j^2\\
 \end{align*}
 so therefore:
 \begin{align*}
-\mu_j| \ldots \sim N \left( \frac{\tau S_j}{n_j \tau + \tau_\mu} , (n_j \tau + \tau_\mu)^2 \right)
+\mu_j| \ldots \sim N \left( \frac{\tau S_j}{n_j \tau + \tau_\mu} , (n_j \tau + \tau_\mu)^{-1} \right)
 \end{align*}
 
 \subsection*{Update for $\tau$}

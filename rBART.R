@@ -291,8 +291,8 @@ grow_tree = function(X, y, curr_tree, node_min_size) {
   # split_value = runif(1, low_bound, high_bound)
   
   # Alternatively follow BARTMachine and choose a split value using sample on the internal values of the available
-  available_values = sort(X[new_tree$node_indices == node_to_split,
-                       split_variable])
+  available_values = sort(unqiue(X[new_tree$node_indices == node_to_split,
+                       split_variable]))
   split_value = sample(available_values[-c(1,length(available_values))], 1)
   
   curr_parent = new_tree$tree_matrix[node_to_split, 'parent'] # Make sure to keep the current parent in there. Will be NA if at the root node
@@ -663,6 +663,7 @@ get_tree_prior = function(tree, alpha, beta) {
     return(log(1 - alpha)) # Tree depth is 0 
   }
 
+  
   for(i in 2:nrow(tree$tree_matrix)) {
     # Find the current parent
     curr_parent = tree$tree_matrix[i,'parent']
@@ -682,6 +683,7 @@ get_tree_prior = function(tree, alpha, beta) {
     log_prior = log_prior + log(1 - alpha * ((1 + level[terminal_nodes[i]])^(-beta)))
   } 
   
+
   return(log_prior)
   
 }

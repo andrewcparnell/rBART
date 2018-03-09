@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/MacPorts 2017_1) (preloaded format=pdflatex 2017.10.5)  8 MAR 2018 15:27
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/MacPorts 2017_2) (preloaded format=pdflatex 2017.12.8)  9 MAR 2018 10:42
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**Maths_Dec17.tex
-(./Maths_Dec17.tex
+**Maths.tex
+(./Maths.tex
 LaTeX2e <2017-04-15>
-Babel <3.10> and hyphenation patterns for 46 language(s) loaded.
+Babel <3.10> and hyphenation patterns for 3 language(s) loaded.
 (/opt/local/share/texmf-texlive/tex/latex/base/article.cls
 Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
 (/opt/local/share/texmf-texlive/tex/latex/base/size10.clo
@@ -113,65 +113,8 @@ Package: indentfirst 1995/11/23 v1.03 Indent first paragraph (DPC)
 )
 (/opt/local/share/texmf-texlive/tex/latex/setspace/setspace.sty
 Package: setspace 2011/12/19 v6.7a set line spacing
-)
-(/opt/local/share/texmf-texlive/tex/latex/algorithm2e/algorithm2e.sty
-Package: algorithm2e 2013/01/06 v5.00 algorithms environments
-\c@AlgoLine=\count100
-
-(/opt/local/share/texmf-texlive/tex/latex/base/ifthen.sty
-Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
-)
-\algocf@hangindent=\skip47
-
-(/opt/local/share/texmf-texlive/tex/latex/tools/xspace.sty
-Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
-)
-(/opt/local/share/texmf-texlive/tex/latex/relsize/relsize.sty
-Package: relsize 2013/03/29 ver 4.1
-)
-********************************************************
-Package `algorithm2e' Release 5.1 -- october 19 2015 --
-- algorithm2e-announce@lirmm.fr mailing list for announcement about releases
-- algorithm2e-discussion@lirmm.fr mailing list for discussion about package
-subscribe by emailing sympa@lirmm.fr with 'subscribe <list> <firstname name>'
-- Author: Christophe Fiorio (christophe.fiorio@umontpellier.fr)
-********************************************************
-\skiptotal=\skip48
-\skiplinenumber=\skip49
-\skiprule=\skip50
-\skiphlne=\skip51
-\skiptext=\skip52
-\skiplength=\skip53
-\algomargin=\skip54
-\skipalgocfslide=\skip55
-\algowidth=\dimen112
-\inoutsize=\dimen113
-\inoutindent=\dimen114
-\interspacetitleruled=\dimen115
-\interspacealgoruled=\dimen116
-\interspacetitleboxruled=\dimen117
-\algocf@ruledwidth=\skip56
-\algocf@inoutbox=\box28
-\algocf@inputbox=\box29
-\AlCapSkip=\skip57
-\AlCapHSkip=\skip58
-\algoskipindent=\skip59
-\algocf@nlbox=\box30
-\algocf@hangingbox=\box31
-\algocf@untilbox=\box32
-\algocf@skipuntil=\skip60
-\algocf@capbox=\box33
-\algoheightruledefault=\skip61
-\algoheightrule=\skip62
-\algotitleheightruledefault=\skip63
-\algotitleheightrule=\skip64
-\c@algocfline=\count101
-\c@algocfproc=\count102
-\c@algocf=\count103
-\algocf@algoframe=\box34
-\algocf@algobox=\box35
-) (./Maths_Dec17.aux)
-\openout1 = `Maths_Dec17.aux'.
+) (./Maths.aux)
+\openout1 = `Maths.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
 LaTeX Font Info:    ... okay on input line 20.
@@ -188,16 +131,16 @@ LaTeX Font Info:    ... okay on input line 20.
 
 (/opt/local/share/texmf-texlive/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count104
-\scratchdimen=\dimen118
-\scratchbox=\box36
-\nofMPsegments=\count105
-\nofMParguments=\count106
+\scratchcounter=\count100
+\scratchdimen=\dimen112
+\scratchbox=\box28
+\nofMPsegments=\count101
+\nofMParguments=\count102
 \everyMPshowfont=\toks19
-\MPscratchCnt=\count107
-\MPscratchDim=\dimen119
-\MPnumerator=\count108
-\makeMPintoPDFobject=\count109
+\MPscratchCnt=\count103
+\MPscratchDim=\dimen113
+\MPnumerator=\count104
+\makeMPintoPDFobject=\count105
 \everyMPtoPDFconversion=\toks20
 ) (/opt/local/share/texmf-texlive/tex/generic/oberdiek/pdftexcmds.sty
 Package: pdftexcmds 2017/03/19 v0.25 Utility functions of pdfTeX for LuaTeX (HO
@@ -255,39 +198,33 @@ e
 [1
 
 {/opt/local/var/db/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
-[4] [5] (./Maths_Dec17.aux) )
-(\end occurred inside a group at level 1)
-
-### simple group (level 1) entered at line 1061 ({)
-### bottom level 
+[4] [5] (./Maths.aux) ) 
 Here is how much of TeX's memory you used:
- 3061 strings out of 494108
- 43766 string characters out of 6155655
- 122058 words of memory out of 5000000
- 6411 multiletter control sequences out of 15000+600000
- 9369 words of font info for 34 fonts, out of 8000000 for 9000
- 430 hyphenation exceptions out of 8191
- 39i,13n,25p,315b,1931s stack positions out of 5000i,500n,10000p,200000b,80000s
-</opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/
-cmbx10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmbx1
-2.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmex10.pfb
-></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cmextra/cmex7.pfb>
-</opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi10.pfb></opt
-/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi12.pfb></opt/loca
-l/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi5.pfb></opt/local/shar
-e/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi7.pfb></opt/local/share/texm
-f-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></opt/local/share/texmf-texl
-ive/fonts/type1/public/amsfonts/cm/cmr12.pfb></opt/local/share/texmf-texlive/fo
-nts/type1/public/amsfonts/cm/cmr17.pfb></opt/local/share/texmf-texlive/fonts/ty
-pe1/public/amsfonts/cm/cmr5.pfb></opt/local/share/texmf-texlive/fonts/type1/pub
-lic/amsfonts/cm/cmr7.pfb></opt/local/share/texmf-texlive/fonts/type1/public/ams
-fonts/cm/cmsy10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts
-/cm/cmsy7.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cm
-ti10.pfb>
-Output written on Maths_Dec17.pdf (5 pages, 174115 bytes).
+ 2093 strings out of 494936
+ 28347 string characters out of 6180785
+ 92618 words of memory out of 5000000
+ 5380 multiletter control sequences out of 15000+600000
+ 8715 words of font info for 32 fonts, out of 8000000 for 9000
+ 14 hyphenation exceptions out of 8191
+ 39i,13n,25p,309b,187s stack positions out of 5000i,500n,10000p,200000b,80000s
+</opt/local/share/texmf-texlive/fonts/type1/public/amsfo
+nts/cm/cmbx12.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/c
+m/cmex10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cmextr
+a/cmex7.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi
+10.pfb></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi12.pf
+b></opt/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi5.pfb></op
+t/local/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi7.pfb></opt/loca
+l/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></opt/local/shar
+e/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr12.pfb></opt/local/share/texm
+f-texlive/fonts/type1/public/amsfonts/cm/cmr17.pfb></opt/local/share/texmf-texl
+ive/fonts/type1/public/amsfonts/cm/cmr5.pfb></opt/local/share/texmf-texlive/fon
+ts/type1/public/amsfonts/cm/cmr7.pfb></opt/local/share/texmf-texlive/fonts/type
+1/public/amsfonts/cm/cmsy10.pfb></opt/local/share/texmf-texlive/fonts/type1/pub
+lic/amsfonts/cm/cmsy7.pfb>
+Output written on Maths.pdf (5 pages, 148620 bytes).
 PDF statistics:
- 84 PDF objects out of 1000 (max. 8388607)
- 60 compressed objects within 1 object stream
+ 76 PDF objects out of 1000 (max. 8388607)
+ 54 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

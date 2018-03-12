@@ -63,7 +63,6 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   
   # Start the iterations loop
   for (i in 1:iter) {
-    #if(i%%10 ==0) cat('iteration',i,'\n')
     utils::setTxtProgressBar(pb, i)
     
     # If at the right place store everything
@@ -114,16 +113,16 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                                tau_mu)
       old_log_prior = get_tree_prior(curr_trees[[j]], alpha, beta)
       
-
       # If accepting a new tree update all relevant parts
-      accept_ratio = exp(new_log_lik + new_log_prior - old_log_lik - old_log_prior)
+      accept_ratio = exp(new_log_lik + new_log_prior - 
+                           old_log_lik - old_log_prior)
       
       if(accept_ratio > runif(1)) {
         # Make changes if accept
         curr_trees = new_trees
         
         # Simulate mu for new trees
-        curr_trees[[j]] = simulate_mu(new_trees[[j]], 
+        curr_trees[[j]] = simulate_mu(curr_trees[[j]], 
                                       current_partial_residuals, 
                                       tau, tau_mu)
         
@@ -136,7 +135,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
     S = sum((y_scale - predictions)^2)
     
     # Update tau and sigma
-    tau = update_tau(S, nu, lambda, 
+    tau = update_tau(S, nu, lambda,
                      n = length(y_scale))
     sigma = 1/sqrt(tau)
 
@@ -147,7 +146,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   cat('\n') # Make sure progress bar ends on a new line
   
   return(list(trees = tree_store,
-         sigma = sigma_store*y_sd,
+         sigma = sigma_store,
          y_hat = y_hat_store,
          log_lik = log_lik_store,
          y = y,
@@ -694,10 +693,10 @@ simulate_mu = function(tree, R, tau, tau_mu) {
   sumR = aggregate(R, by = list(tree$node_indices), sum)[,2]
   
   # Now calculate mu values - NOTE THIS IS WRONG AND NEEDS ADJUSTING AND MATHS
-  mu = rnorm(length(nj), 
+  mu = rnorm(length(nj),
              mean = tau * sumR / (nj * tau + tau_mu),
              sd = sqrt(1/(nj*tau + tau_mu)))
-  
+
   # Wipe all the old mus out for other nodes
   tree$tree_matrix[,'mu'] = NA
   

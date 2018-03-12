@@ -34,7 +34,7 @@ vignettes/*.pdf
 .Rproj.user
 
 # Mac files
-.DS_store
+.DS_Store
 
 # Compiled files
 src/*.so

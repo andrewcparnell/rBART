@@ -8,7 +8,6 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                  control = list(node_min_size = 5), # Size of smallest nodes
                  priors = list(alpha = 0.95, # Prior control list
                                beta = 2,
-                               mu_mu = 0,
                                tau_mu = 2,
                                nu = 3,
                                lambda = 0.1), 
@@ -24,7 +23,6 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   # Extract hyper-parameters
   alpha = priors$alpha # Tree shape parameter 1
   beta = priors$beta # Tree shape parameter 2
-  mu_mu = priors$mu_mu # Overall mean for terminal nodes
   tau_mu = priors$tau_mu # Precision for overall mean (sometimes called a?)
   nu = priors$nu # Parameter 1 for precision
   lambda = priors$lambda # Parameter 2 for precision

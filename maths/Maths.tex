@@ -5,7 +5,7 @@
 \usepackage{amsmath}
 \usepackage{indentfirst}
 \usepackage{setspace}
-%\usepackage[]{algorithm2e}
+\usepackage[]{algorithm2e}
 
 \DeclareMathOperator{\var}{var}
 \DeclareMathOperator{\cov}{cov}
@@ -24,23 +24,41 @@
 \maketitle
 
 
-%\section*{Overall algorithm details}
-%
-%\begin{algorithm}[H]
-% \KwData{this text}
-% \KwResult{how to write algorithm with \LaTeX2e }
-% initialization\;
-% \While{not at end of this document}{
-%  read current\;
-%  \eIf{understand}{
-%   go to next section\;
-%   current section becomes this one\;
-%   }{
-%   go back to the beginning of current section\;
-%  }
-% }
-% \caption{How to write algorithms}
-%\end{algorithm}
+\section*{Overall algorithm details}
+
+The equations referred to below are displayed later in this document.
+
+\RestyleAlgo{boxruled}
+\begin{algorithm}[H]
+ \KwData{Target variables $y$ (length $n$; standardised), feature matrix $X$ ($n$ rows and $p$ columns}
+ \KwResult{Posterior list of trees $T$, values of $\tau$, fitted values $\hat{y}$}
+ \textbf{Initialisation\;}
+ 	Hyper-parameter values of $\alpha$, $\beta$, $\tau_\mu$, $\nu$, $\lambda$\;
+	Number of trees $M$\;
+	Number of iterations $N$\;
+	Initial value $\tau = 1$\;
+	Set trees $T_j$; $j=1, \ldots, M$ to stumps\;
+	Set values of $\mu$ to 0\;
+\For{iterations $i$ from 1 to $N$}{
+	\For{trees $j$ from 1 to $M$}{
+		Compute partial residuals from $y$ minus predictions of all trees except tree $j$\;
+		Grow a new tree $T_j^{new}$ based on grow/prune/change/swap\;
+		Set $l_{new}$ = log full conditional of new tree $T^{new}_j$ based on Equation 1 plus Equation 4\;
+		Set $l_{old}$ = log full conditional of old tree $T_j$ based on same equations\;
+		Set $a = \exp(l_{new} - l_{old} )$\;
+		Generate $u \sim U(0, 1)$\;
+		\If{$a > u$}{
+			Set $T_j = T_j^{new}$\;
+			Simulate $\mu$ values using Equation 3\;
+		}
+	}
+	
+	Get predictions $\hat{y}$ from all trees\;
+	Update $\tau$ using Equation 4\;
+}
+\caption{BART Markov chain Monte Carlo}
+\end{algorithm}
+
 
 \section{Updating trees}
 
@@ -90,10 +108,10 @@ which on the log scale gives:
 \end{align*}
 
 This can be simplified further to give:
-\begin{align*}
+\begin{align}
 \frac{n}{2} \log(\tau) + \frac{1}{2} \sum_{j=1}^b \log \left( \frac{\tau_\mu}{\tau_\mu + n_j \tau} \right) - \frac{\tau}{2} \sum_{j=1}^b 
 \sum_{i=1}^{n_j} R_{ji}^2 + \frac{\tau^2}{2} \sum_{j=1}^b \frac{ S_j^2 }{ \tau_\mu + n_j \tau }
-\end{align*}
+\end{align}
 
 where $S_j = \sum_{i=1}^{n_j} R_{ji}$
 
@@ -116,9 +134,9 @@ Q &= n_j \tau \mu_j^2 - 2\mu_j \tau S_j + \tau_\mu \mu_j^2\\
 &\propto (n_j \tau + \tau_\mu) \left[ \mu_j - \frac{\tau \mu_j S_j}{n_j \tau + \tau_\mu} \right]^2
 \end{align*}
 so therefore:
-\begin{align*}
+\begin{align}
 \mu_j| \ldots \sim N \left( \frac{\tau S_j}{n_j \tau + \tau_\mu} , (n_j \tau + \tau_\mu)^{-1} \right)
-\end{align*}
+\end{align}
 
 \subsection*{Update for $\tau$}
 
@@ -132,9 +150,9 @@ Letting $S = \sum_{i=1}^n (y_i - \mu_i)^2$ we get:
 &= \tau^{(n + \nu)/2} e^{-\frac{\tau}{2} (S + \nu \lambda)}
 \end{align*}
 so
-\begin{align*}
+\begin{align}
 \tau | \ldots \sim Ga \left( \frac{n + \nu}{2}, \frac{S + \nu \lambda}{2} \right)
-\end{align*}
+\end{align}
 
 \subsection*{Tree prior}
 
@@ -150,9 +168,9 @@ P &= \prod_{i=1}^b \left[ 1 - \alpha (1 + d^t_i)^{-\beta} \right] \prod_{i=1}^k 
 \end{align*}
 where $d^t_i$ is the depth of the $i$th terminal node and $d^{nt}_i$ is the depth of the $i$th non-terminal node.
 On the log scale this gives:
-\begin{align*}
-\log P &= \sum_{i=1}^b \left[ \log \left(1 - \alpha(1 + d^t_i)^{-\beta} \right) \right] + \sum_{i=1}^k \left[ \log(\alpha) - \beta \log(1 + d^{nt}_i) \right] \\
-\end{align*}
+\begin{align}
+\log P &= \sum_{i=1}^b \left[ \log \left(1 - \alpha(1 + d^t_i)^{-\beta} \right) \right] + \sum_{i=1}^k \left[ \log(\alpha) - \beta \log(1 + d^{nt}_i) \right]
+\end{align}
 
 \end{document}
 

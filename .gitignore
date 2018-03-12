@@ -35,3 +35,12 @@ vignettes/*.pdf
 
 # Mac files
 .DS_store
+
+# Compiled files
+src/*.so
+Src/*.o
+
+# Latex files
+*.aux
+*.log
+*.synctex.gz

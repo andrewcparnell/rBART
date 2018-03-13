@@ -121,13 +121,13 @@ rBART = function(X, y, # X is the feature matrix, y is the target
         # Make changes if accept
         curr_trees = new_trees
         
-        # Simulate mu for new trees
-        curr_trees[[j]] = simulate_mu(curr_trees[[j]], 
-                                      current_partial_residuals, 
-                                      tau, tau_mu)
-        
       } # End of accept if statement
-      
+
+      # Update mu whether tree accepted or not
+      curr_trees[[j]] = simulate_mu(curr_trees[[j]], 
+                                    current_partial_residuals, 
+                                    tau, tau_mu)
+
     } # End loop through trees
     
     # Calculate full set of predictions
@@ -913,3 +913,26 @@ rBART_CV = function(X, y, folds = 5, num_trees = 2, ...) {
               oob_predictions = oob_predictions,
               fold_id = fold_id))
 }
+
+# Simulate friedman -------------------------------------------------------
+
+sim_friedman = function(n, p, d, scale_par = 5, scale_err = 0.5) {
+  # Simulate some data using a multivariate version of Friedman
+  # y = 10sin(πx1x2)+20(x3−0.5)2+10x4+5x5+ε
+  X = matrix(NA, nrow = n, ncol = 5 + p)
+  for(i in 1:ncol(X)) X[,i] = rnorm(n, 0, 1)
+  pars = matrix(rnorm(5 * d, sd = scale_par), ncol = d, nrow = 5) # 5 parameters on d dimensions
+  y = mean = matrix(NA, ncol = d, nrow = n)
+  Sigma = rWishart(1, d, scale_err*diag(d))[,,1]
+  if(d > 1) {
+    err = rmvnorm(n, sigma = Sigma)
+  } else {
+    err = matrix(rnorm(n, sd = sqrt(Sigma)), ncol = 1)
+  }
+  for(j in 1:d) {
+    mean[,j] = pars[1,j]*sin(X[,1]*X[,2]) + pars[2,j] * (X[,3]-0.5)^2 + pars[3,j] * X[,4] + pars[5,j] * X[,5]
+    y[,j] = mean[,j] + err[,j]
+  }
+  return(list(y = y, X = X, Sigma = Sigma, mean = mean))
+}
+

@@ -7,11 +7,16 @@ library(bartMachine) # install.packages('bartMachine') if required
 library(treeio) # biocLite("treeio")
 library(ggtree) # biocLite("ggtree")
 
-# Set the working directory before running
+# Source in the code
+source('rBART.R')
+
 # Load in the data - first column is target
-data = read.table("friedman.txt")
-X = data[,-1]
-y = scale(data[,1])[,1]
+# data = read.table("friedman.txt")
+# X = data[,-1]
+# y = scale(data[,1])[,1]
+dat = sim_friedman(n = 200)
+y = as.vector(scale(dat$y))
+X = as.data.frame(dat$X)
 
 # # Run it through bartMachine with a fixed seed and 1 tree
 set.seed(123)
@@ -29,7 +34,6 @@ plot(y, y_hat_bartm) # Unsurprisingly pretty good
 sigsqs_bartm = get_sigsqs(bart_machine)
 sigma_bartm = sqrt(sigsqs_bartm)
 
-source('rBART.R')
 set.seed(123)
 rBART_out = rBART(X, y, num_trees = 2)#,
                   # MCMC = list(iter = 10000,

@@ -422,9 +422,10 @@ change_tree = function(X, y, curr_tree) {
     # Create new split variable and value based on ignorance
     # then check this doesn't give a bad tree
     new_split_variable = sample(1:ncol(X), 1)
-    new_split_value = runif(1, min(X[use_node_indices,new_split_variable]),
-                            max(X[use_node_indices,new_split_variable]))
-    #new_split_value = mean(X[use_node_indices,new_split_variable])
+    available_values = sort(unique(X[use_node_indices,
+                                     new_split_variable]))
+    new_split_value = sample(available_values[-c(1,length(available_values))], 1)
+    
 
     # Update the tree details
     new_tree$tree_matrix[node_to_change,
@@ -916,7 +917,7 @@ rBART_CV = function(X, y, folds = 5, num_trees = 2, ...) {
 
 # Simulate friedman -------------------------------------------------------
 
-sim_friedman = function(n, p, d, scale_par = 5, scale_err = 0.5) {
+sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 0.5) {
   # Simulate some data using a multivariate version of Friedman
   # y = 10sin(πx1x2)+20(x3−0.5)2+10x4+5x5+ε
   X = matrix(NA, nrow = n, ncol = 5 + p)

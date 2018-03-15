@@ -188,7 +188,7 @@ We don't need the subscripts $j$ for an individual tree so the shortcut to what 
 \begin{align*}
 \pi(R_1, \ldots, R_n| \ldots ) &= \int \int \pi(R_1, \ldots, R_n| \mu, \tau) \pi(\mu) \pi(\tau) \partial \mu \; \partial \tau \\
 &\propto \int \int \left[ \prod_{i=1}^n \tau^{1/2} \exp \left(-\frac{\tau}{2} (R_i - \mu)^2 \right) \right]\tau^{1/2} \exp \left(-\frac{a \tau}{2} \mu^2 \right) \tau^{\nu/2 - 1} \exp \left( - \frac{\tau \nu \lambda} {2} \right) \partial \mu \; \partial \tau \\
-&= \int \int \tau^{n/2} \exp \left(-\frac{\tau}{2} \sum_i (R_i - \mu)^2 \right) \tau^{1/2} \exp \left(-\frac{a \tau}{2} \mu^2 \right) \tau^{\nu/2 - 1} \exp \left( - \frac{\tau \nu \lambda} {2} \right) \partial \mu \; \partial \tau 
+&\propto \int \int \tau^{n/2} \exp \left(-\frac{\tau}{2} \sum (R_i - \mu)^2 \right) \tau^{1/2} \exp \left(-\frac{a \tau}{2} \mu^2 \right) \tau^{\nu/2 - 1} \exp \left( - \frac{\tau \nu \lambda} {2} \right) \partial \mu \; \partial \tau 
 \end{align*}
 Note that $\sum (R_i - \mu)^2$ can be re-written as $SS_{R} + n(\mu - \bar{R})^2$ where $SS_R = \sum (R_i - \bar{R})^2$.\\
 
@@ -198,28 +198,36 @@ We now get
 \end{align*}
 
 Simplifying the exponent to separate out the terms with $\mu$ gives:
-$$n(\mu - \bar{R})^2 + a \mu^2 = (a+n)\left[ \mu - \frac{n\bar{R}}{n + a} \right]^2 + \frac{an\bar{R}^2}{n + a}$$
+$$n(\mu - \bar{R})^2 + a \mu^2 = (a+n)\left[ \mu + \frac{n\bar{R}}{n + a} \right]^2 + \frac{a n\bar{R}^2}{n + a}$$
 
 So we can perform the integrand with respect to $\mu$ first:
 \begin{align*}
-\pi(R_1, \ldots, R_n| \ldots ) &\propto  \int  \tau^{(n+\nu - 2)/2} \exp \left(-\frac{\tau}{2} \left\{ SS_{R} + \nu \lambda + \frac{an\bar{R}^2}{n + a} \right\} \right) \int \tau^{1/2} \exp \left(-\frac{\tau (a+n)}{2} \left\{ \left[ \mu - \frac{n\bar{R}}{n + a} \right]^2 \right\} \right) \partial \mu \; \partial \tau
+\pi(R_1, \ldots, R_n| \ldots ) &\propto  \int  \tau^{(n+\nu - 2)/2} \exp \left(-\frac{\tau}{2} \left\{ SS_{R} + \nu \lambda + \frac{an\bar{R}^2}{n + a} \right\} \right) \int \tau^{1/2} \exp \left(-\frac{\tau (a+n)}{2} \left[ \mu + \frac{n\bar{R}}{n + a} \right]^2  \right) \partial \mu \; \partial \tau
 \end{align*}
 The integrand wrt $\mu$ is proportional to $(a + n)^{-1/2}$ and also provides the full conditional for $\mu$ (putting back in the subscripts):
 $$\mu_j |\ldots \sim N \left( \frac{n_j\bar{R}_j}{n_j + a} , \left[ \tau_j (a+n_j) \right]^{-1} \right)$$
 
 Next we have: 
 \begin{align*}
-\pi(R_1, \ldots, R_n| \ldots ) &\propto  \int  \frac{\tau^{(n+\nu - 2)/2}}{(a+n)^{1/2}} \exp \left(-\frac{\tau}{2} \left\{ SS_{R} + \nu \lambda + \frac{an\bar{R}^2}{n + a} \right\} \right)  \partial \tau \\
+\pi(R_1, \ldots, R_n| \ldots ) &\propto  \int  \frac{\tau^{(n+\nu - 2)/2}}{(a+n)^{1/2}} \exp \left(-\frac{\tau}{2} \left\{ SS_{R} + \nu \lambda + \frac{an\bar{R}^2}{n + a} \right\} \right)  \partial \tau
 \end{align*}
 
 This also provides the complete conditional for (re-inserting subscripts) $\tau_j$:
-$$\tau_j |\ldots \sim Ga \left( \frac{n_j + \nu}{2} , \frac{1}{2} \left[ SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j}{n_j+a} \right] \right)$$
+$$\tau_j |\ldots \sim Ga \left( \frac{n_j + \nu}{2} , \frac{1}{2} \left[ SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j^2}{n_j+a} \right] \right)$$
 
 Finally we have (again with subscripts):
 \begin{align*}
-\pi(R_{1j}, \ldots, R_{jn_j}| \ldots ) &\propto (a+n_j)^{-1/2} \; \Gamma \left( \frac{n_j + \nu}{2} \right)\left[SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j^2}{n_j + a} \right]^{-(\frac{n_j + \nu}{2})} \\
+\pi(R_{1j}, \ldots, R_{jn_j}| \ldots ) &\propto (a+n_j)^{-1/2} \; \Gamma \left( \frac{n_j + \nu}{2} \right) \left[SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j^2}{n_j + a} \right]^{-\left( \frac{n_j + \nu}{2} \right)}
 \end{align*}
 
+With multiple terminal nodes for a tree we have:
+\begin{align*}
+\prod_{j=1}^b \pi(R_{1j}, \ldots, R_{jn_j}| \ldots ) &= \prod_{j=1}^b (a+n_j)^{-1/2} \; \Gamma \left( \frac{n_j + \nu}{2} \right) \left[SS_{R_j} + \nu \lambda - \frac{an_j\bar{R}_j^2}{n_j + a} \right]^{-(\frac{n_j + \nu}{2})} \\
+&= \left[ \prod_{j=1}^b (a+n_j)^{-1/2} \right] \left[ \prod_{j=1}^b \Gamma \left( \frac{n_j + \nu}{2} \right) \right] \left\{ \prod_{j=1}^b \left[SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j^2}{n_j + a} \right]^{-\left( \frac{n_j + \nu}{2} \right)} \right\}
+\end{align*}
+
+which on the log scale is:
+$$\log \prod_{j=1}^b \pi_j = -\frac{1}{2} \sum_{j=1}^b \log(a + n_j) + \sum_{j=1}^b \log \Gamma \left( \frac{n_j + \nu}{2} \right) - \sum_{j=1}^b \left( \frac{n_j + \nu}{2} \log \left[SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j^2}{n_j + a} \right] \right) $$
 
 \end{document}
 

@@ -69,8 +69,8 @@ $$\mu \sim N(0, \tau_{\mu}^{-1})$$
 
 Using $\pi$ to denote a probability distribution, we want to find:
 \begin{align*}
-\pi(R_1, \ldots, R_n| \sigma) &= \int \pi(R_1, \ldots, R_n| \mu, \tau) \pi(\mu) \partial \mu \\
-&\propto \prod_{i=1}^n \tau^{1/2} e^{-\frac{\tau}{2} (R_i - \mu)^2} \tau_{\mu}^{1/2} e^{-\frac{\tau_\mu}{2} \mu^2 } \partial \mu \\
+\pi(R_1, \ldots, R_n| \tau) &= \int \pi(R_1, \ldots, R_n| \mu, \tau) \pi(\mu) \partial \mu \\
+& \propto \int \prod_{i=1}^n \tau^{1/2} e^{-\frac{\tau}{2} (R_i - \mu)^2} \tau_{\mu}^{1/2} e^{-\frac{\tau_\mu}{2} \mu^2 } \partial \mu \\
 &= \int \tau^{n/2} e^{-\frac{\tau}{2} \sum (R_i - \mu)^2} \tau_{\mu}^{1/2} e^{-\frac{\tau_\mu}{2} \mu^2 } \partial \mu \\
 &= \int \tau^{n/2} \tau_{\mu}^{1/2} e^{-\frac{1}{2} \left[ \tau \left\{ \sum R_i^2 + n \mu^2 - 2 \mu n \bar{R} \right\} + \tau_\mu \mu^2 \right]} \partial \mu \\
 &= \tau^{n/2} \tau_{\mu}^{1/2} e^{-\frac{1}{2} \left[ \tau \sum R_i^2 \right]} \int e^{-\frac{1}{2} Q} \partial \mu 
@@ -142,16 +142,16 @@ so therefore:
 
 I am using the shape/rate parameterisation of the gamma with prior $\tau \sim Ga(\nu/2, \nu \lambda / 2)$. Letting $\mu_i$ be the prediction of the $i$th observation we get:
 \begin{align*}
-\pi(\tau | \ldots) &\propto \prod_{i=1}^n \tau^{1/2} e^{-\frac{\tau}{2} (y_i - \mu_i)^2} \tau^{\nu/2} e^{-\tau \nu \lambda / 2}
+\pi(\tau | \ldots) &\propto \prod_{i=1}^n \tau^{1/2} e^{-\frac{\tau}{2} (y_i - \mu_i)^2} \tau^{\nu/2 - 1} e^{-\tau \nu \lambda / 2}
 \end{align*}
 Letting $S = \sum_{i=1}^n (y_i - \mu_i)^2$ we get:
 \begin{align*}
-\pi(\tau | \ldots) &\propto \tau^{n/2} e^{-\frac{\tau}{2} S} \tau^{\nu/2} e^{-\tau \nu \lambda / 2}\\
-&= \tau^{(n + \nu)/2} e^{-\frac{\tau}{2} (S + \nu \lambda)}
+\pi(\tau | \ldots) &\propto \tau^{n/2} e^{-\frac{\tau}{2} S} \tau^{\nu/2 - 1} e^{-\tau \nu \lambda / 2}\\
+&= \tau^{(n + \nu)/2 - 1} e^{-\frac{\tau}{2} (S + \nu \lambda)}
 \end{align*}
 so
 \begin{align}
-\tau | \ldots \sim Ga \left( \frac{n + \nu}{2}, \frac{S + \nu \lambda}{2} \right)
+\tau | \ldots \sim Ga \left( \frac{n + \nu}{2} - 1, \frac{S + \nu \lambda}{2} \right)
 \end{align}
 
 \subsection*{Tree prior}
@@ -171,6 +171,55 @@ On the log scale this gives:
 \begin{align}
 \log P &= \sum_{i=1}^b \left[ \log \left(1 - \alpha(1 + d^t_i)^{-\beta} \right) \right] + \sum_{i=1}^k \left[ \log(\alpha) - \beta \log(1 + d^{nt}_i) \right]
 \end{align}
+
+\section*{Mean and variance changing}
+
+An alternative, slightly more flexible, model can be created by giving each terminal node it's own precision value. Thus for tree $j$ we have:
+$$ R_{1j}, \ldots, R_{jn_j} | \mu_j, \tau_j \sim N(\mu_j, \tau_j^{-1})$$
+The maths is much simplified by setting the prior on $\mu_j$ as:
+$$\mu_j \sim N(0, (a \tau)^{-1}).$$
+Chipman et al (1998) set $a = 1/3$ for a single tree setting, so perhaps $a = 1/(3m)$ might be more appropriate for a multi-tree version with $m$ trees.\\
+
+We now have a prior for each terminal node:
+$$\tau_j \sim Ga(\nu/2, \nu \lambda / 2)$$
+Chipman et al (1998) suggest making $\nu$ and $\lambda$ functions of tree complexity but we don't do that here.\\
+
+We don't need the subscripts $j$ for an individual tree so the shortcut to what we require is:
+\begin{align*}
+\pi(R_1, \ldots, R_n| \ldots ) &= \int \int \pi(R_1, \ldots, R_n| \mu, \tau) \pi(\mu) \pi(\tau) \partial \mu \; \partial \tau \\
+&\propto \int \int \left[ \prod_{i=1}^n \tau^{1/2} \exp \left(-\frac{\tau}{2} (R_i - \mu)^2 \right) \right]\tau^{1/2} \exp \left(-\frac{a \tau}{2} \mu^2 \right) \tau^{\nu/2 - 1} \exp \left( - \frac{\tau \nu \lambda} {2} \right) \partial \mu \; \partial \tau \\
+&= \int \int \tau^{n/2} \exp \left(-\frac{\tau}{2} \sum_i (R_i - \mu)^2 \right) \tau^{1/2} \exp \left(-\frac{a \tau}{2} \mu^2 \right) \tau^{\nu/2 - 1} \exp \left( - \frac{\tau \nu \lambda} {2} \right) \partial \mu \; \partial \tau 
+\end{align*}
+Note that $\sum (R_i - \mu)^2$ can be re-written as $SS_{R} + n(\mu - \bar{R})^2$ where $SS_R = \sum (R_i - \bar{R})^2$.\\
+
+We now get
+\begin{align*}
+\pi(R_1, \ldots, R_n| \ldots ) &\propto \int \int  \tau^{(n+\nu - 1)/2} \exp \left(-\frac{\tau}{2} \left\{ SS_{R} + n(\mu - \bar{R})^2  + a \mu^2 + \nu \lambda \right\} \right) \partial \mu \; \partial \tau
+\end{align*}
+
+Simplifying the exponent to separate out the terms with $\mu$ gives:
+$$n(\mu - \bar{R})^2 + a \mu^2 = (a+n)\left[ \mu - \frac{n\bar{R}}{n + a} \right]^2 + \frac{an\bar{R}^2}{n + a}$$
+
+So we can perform the integrand with respect to $\mu$ first:
+\begin{align*}
+\pi(R_1, \ldots, R_n| \ldots ) &\propto  \int  \tau^{(n+\nu - 2)/2} \exp \left(-\frac{\tau}{2} \left\{ SS_{R} + \nu \lambda + \frac{an\bar{R}^2}{n + a} \right\} \right) \int \tau^{1/2} \exp \left(-\frac{\tau (a+n)}{2} \left\{ \left[ \mu - \frac{n\bar{R}}{n + a} \right]^2 \right\} \right) \partial \mu \; \partial \tau
+\end{align*}
+The integrand wrt $\mu$ is proportional to $(a + n)^{-1/2}$ and also provides the full conditional for $\mu$ (putting back in the subscripts):
+$$\mu_j |\ldots \sim N \left( \frac{n_j\bar{R}_j}{n_j + a} , \left[ \tau_j (a+n_j) \right]^{-1} \right)$$
+
+Next we have: 
+\begin{align*}
+\pi(R_1, \ldots, R_n| \ldots ) &\propto  \int  \frac{\tau^{(n+\nu - 2)/2}}{(a+n)^{1/2}} \exp \left(-\frac{\tau}{2} \left\{ SS_{R} + \nu \lambda + \frac{an\bar{R}^2}{n + a} \right\} \right)  \partial \tau \\
+\end{align*}
+
+This also provides the complete conditional for (re-inserting subscripts) $\tau_j$:
+$$\tau_j |\ldots \sim Ga \left( \frac{n_j + \nu}{2} , \frac{1}{2} \left[ SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j}{n_j+a} \right] \right)$$
+
+Finally we have (again with subscripts):
+\begin{align*}
+\pi(R_{1j}, \ldots, R_{jn_j}| \ldots ) &\propto (a+n_j)^{-1/2} \; \Gamma \left( \frac{n_j + \nu}{2} \right)\left[SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j^2}{n_j + a} \right]^{-(\frac{n_j + \nu}{2})} \\
+\end{align*}
+
 
 \end{document}
 

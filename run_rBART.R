@@ -11,12 +11,12 @@ library(ggtree) # biocLite("ggtree")
 source('rBART.R')
 
 # Load in the data - first column is target
-# data = read.table("friedman.txt")
-# X = data[,-1]
-# y = scale(data[,1])[,1]
-dat = sim_friedman(n = 200)
-y = as.vector(scale(dat$y))
-X = as.data.frame(dat$X)
+data = read.table("friedman.txt")
+X = data[,-1]
+y = scale(data[,1])[,1]
+# dat = sim_friedman(n = 200)
+# y = as.vector(scale(dat$y))
+# X = as.data.frame(dat$X)
 
 # # Run it through bartMachine with a fixed seed and 1 tree
 set.seed(123)
@@ -35,10 +35,15 @@ sigsqs_bartm = get_sigsqs(bart_machine)
 sigma_bartm = sqrt(sigsqs_bartm)
 
 set.seed(123)
-rBART_out = rBART(X, y, num_trees = 2)#,
-                  # MCMC = list(iter = 10000,
-                  #            burn = 2000,
-                  #            thin = 8))
+rBART_out = rBART(X, y, num_trees = 2,
+                  MCMC = list(iter = 500,
+                  burn = 0,
+                  thin = 1))
+plot(1/(rBART_out$sigma^2))
+y_hat_rBART = apply(rBART_out$y_hat, 2, 'mean')
+plot(y, y_hat_rBART)
+cor(y, y_hat_rBART)
+stop()
 
 # Plot posterior sigma and compare with BARTMachine
 plot(rBART_out$sigma, ylim = range(c(rBART_out$sigma, sigma_bartm)))
@@ -52,9 +57,9 @@ plot(rBART_out$log_lik)
 # Compare predictions from truth
 y_hat_rBART = apply(rBART_out$y_hat, 2, 'mean')
 plot(y, y_hat_rBART)
-cor(y, y_hat_rBART)
-cor(y, y_hat_bartm) # Lower!
 abline(a = 0, b = 1)
+cor(y, y_hat_rBART)
+cor(y, y_hat_bartm)
 
 # Compare predictions between rBART and BARTMachine
 plot(y_hat_bartm, y_hat_rBART)

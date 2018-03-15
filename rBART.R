@@ -101,23 +101,22 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                node_min_size = node_min_size)
 
       # Calculate the complete conditional and acceptance probability
-      new_log_lik = tree_full_conditional(new_trees[[j]], 
+      l_new = tree_full_conditional(new_trees[[j]], 
                                           current_partial_residuals,
                                           tau, 
-                                          tau_mu)
-      new_log_prior = get_tree_prior(new_trees[[j]], alpha, beta)
+                                          tau_mu) + 
+        get_tree_prior(new_trees[[j]], alpha, beta)
       
-      old_log_lik = tree_full_conditional(curr_trees[[j]], 
+      l_old = tree_full_conditional(curr_trees[[j]], 
                                                current_partial_residuals,
                                                tau, 
-                                               tau_mu)
-      old_log_prior = get_tree_prior(curr_trees[[j]], alpha, beta)
+                                               tau_mu) + 
+        get_tree_prior(curr_trees[[j]], alpha, beta)
       
       # If accepting a new tree update all relevant parts
-      accept_ratio = exp(new_log_lik + new_log_prior - 
-                           old_log_lik - old_log_prior)
+      a = exp(l_new - l_old)
       
-      if(accept_ratio > runif(1)) {
+      if(a > runif(1)) {
         # Make changes if accept
         curr_trees = new_trees
         
@@ -693,8 +692,8 @@ simulate_mu = function(tree, R, tau, tau_mu) {
   # Get sum of residuals in each terminal node
   sumR = aggregate(R, by = list(tree$node_indices), sum)[,2]
   
-  # Now calculate mu values - NOTE THIS IS WRONG AND NEEDS ADJUSTING AND MATHS
-  mu = rnorm(length(nj),
+  # Now calculate mu values
+  mu = rnorm(length(nj) ,
              mean = tau * sumR / (nj * tau + tau_mu),
              sd = sqrt(1/(nj*tau + tau_mu)))
 
@@ -711,9 +710,10 @@ simulate_mu = function(tree, R, tau, tau_mu) {
 
 update_tau = function(S, nu, lambda, n) {
   # Update from maths in Github folder
-  tau = rgamma(1, shape = (nu + n) / 2, rate = (S + nu * lambda) / 2)
+  tau = rgamma(1, shape = (nu + n) / 2 - 1, 
+               rate = (S + nu * lambda) / 2)
   # Alternative
-  #tau = rgamma(1, shape = (nu + n) / 2, scale = 2 / (S + nu * lambda))
+  #tau = rgamma(1, shape = (nu + n) / 2 - 1, scale = 2 / (S + nu * lambda))
   
   return(tau)
 }

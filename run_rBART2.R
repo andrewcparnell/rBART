@@ -11,20 +11,24 @@ library(ggtree) # biocLite("ggtree")
 source('rBART2.R')
 
 # Load in the data - first column is target
-data = read.table("friedman.txt")
-X = data[,-1]
-y = scale(data[,1])[,1]
-# dat = sim_friedman(n = 200)
-# y = as.vector(scale(dat$y))
-# X = as.data.frame(dat$X)
+# data = read.table("friedman.txt")
+# X = data[,-1]
+# y = scale(data[,1])[,1]
+# Set the seed
+set.seed(101)
 
-set.seed(123)
-rBART2_out = rBART2(X, y, num_trees = 3)#,
-                  # MCMC = list(iter = 500,
-                  # burn = 0,
-                  # thin = 1))
+# Simulate some data
+dat = sim_friedman(n = 200, p = 0)
+y = scale(dat$y)
+X = dat$X
+
+rBART2_out = rBART2(X, y, num_trees = 1,
+                    MCMC = list(iter = 500,
+                                burn = 0,
+                                thin = 1))
 y_hat_rBART2 = apply(rBART2_out$y_hat, 2, 'mean')
 plot(y, y_hat_rBART2)
+abline(a = 0, b = 1)
 cor(y, y_hat_rBART2)
 stop()
 

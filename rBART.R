@@ -878,7 +878,7 @@ plot_tree = function(rBART_posterior,
   
   # Finally combine and print
   p2 = p %<+% edge + geom_label(aes(x=branch, label=edge_lab))
-  print(p2)
+  suppressWarnings(print(p2))
 
 }
 

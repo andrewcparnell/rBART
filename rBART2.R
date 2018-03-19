@@ -62,7 +62,7 @@ rBART2 = function(X, y, # X is the feature matrix, y is the target
       tree_store[[curr]] = curr_trees
       y_hat_store[curr,] = predictions
     }
-
+    
     # Start looping through trees
     for (j in 1:num_trees) {
       
@@ -117,9 +117,7 @@ rBART2 = function(X, y, # X is the feature matrix, y is the target
       curr_trees[[j]] = simulate_mu_tau(curr_trees[[j]], 
                                         current_partial_residuals, 
                                         a, nu, lambda)
-
     } # End loop through trees
-    
     # Calculate full set of predictions
     predictions = get_predictions(curr_trees, X, single_tree = num_trees == 1)
   
@@ -566,9 +564,9 @@ tree_full_conditional = function(tree, R, a, nu, lambda) {
   R_bar_j = aggregate(R, by = list(tree$node_indices), mean)[,2]
 
   # Now calculate the log posterior
-  log_post = 0.5 * sum( log(nj + a) ) + 
+  log_post = -0.5 * sum( log(nj + a) ) + 
     sum( lgamma( 0.5 * (nj + nu) ) ) -
-    sum( 0.5 * (nj + a) * log( SS_Rj + nu * lambda + a * nj * R_bar_j^2 / (nj + a) ) )
+    sum( 0.5 * (nj + nu) * log( SS_Rj + nu * lambda + a * nj * R_bar_j^2 / (nj + a) ) )
     
   return(log_post)
 }
@@ -852,7 +850,7 @@ plot_tree = function(rBART2_posterior,
   
   # Finally combine and print
   p2 = p %<+% edge + geom_label(aes(x=branch, label=edge_lab))
-  print(p2)
+  suppressWarnings(print(p2))
 
 }
 

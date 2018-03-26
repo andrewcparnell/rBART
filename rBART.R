@@ -710,7 +710,7 @@ simulate_mu = function(tree, R, tau, tau_mu) {
 
 update_tau = function(S, nu, lambda, n) {
   # Update from maths in Github folder
-  tau = rgamma(1, shape = (nu + n) / 2 - 1, 
+  tau = rgamma(1, shape = (nu + n) / 2, 
                rate = (S + nu * lambda) / 2)
   # Alternative
   #tau = rgamma(1, shape = (nu + n) / 2 - 1, scale = 2 / (S + nu * lambda))

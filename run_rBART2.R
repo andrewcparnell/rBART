@@ -22,8 +22,8 @@ set.seed(101)
 # y = scale(dat$y)
 # X = dat$X
 
-rBART2_out = rBART2(X, y, num_trees = 1)#,
-                    # MCMC = list(iter = 500,
+rBART2_out = rBART2(X, y, num_trees = 2)
+                    # MCMC = list(iter = 10,
                     #             burn = 0,
                     #             thin = 1))
 y_hat_rBART2 = apply(rBART2_out$y_hat, 2, 'mean')

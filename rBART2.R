@@ -88,7 +88,6 @@ rBART2 = function(X, y, # X is the feature matrix, y is the target
                                type = type, 
                                curr_tree = curr_trees[[j]],
                                node_min_size = node_min_size)
-
       # Calculate the complete conditional and acceptance probability
       l_new = tree_full_conditional(new_trees[[j]], 
                                     current_partial_residuals,
@@ -686,7 +685,7 @@ simulate_mu_tau = function(tree, R, a, nu, lambda) {
   
   # Put in just the ones that are useful
   tree$tree_matrix[which_terminal,'mu'] = mu
-  tree$tree_matrix[which_terminal, 'tau'] = tau
+  tree$tree_matrix[which_terminal,'tau'] = tau
   
   return(tree)
 }

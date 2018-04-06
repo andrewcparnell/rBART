@@ -172,6 +172,18 @@ On the log scale this gives:
 \log P &= \sum_{i=1}^b \left[ \log \left(1 - \alpha(1 + d^t_i)^{-\beta} \right) \right] + \sum_{i=1}^k \left[ \log(\alpha) - \beta \log(1 + d^{nt}_i) \right]
 \end{align}
 
+\section*{2-class classification version}
+
+A 2-class classification version can be created by using the latent probit representation of the binomial distribution. We assume the response variable $y_i$ takes values 0 or 1, and depends on a latent variable $z_i$ upon which the BART model is applied:
+$$y_i = \left\{ \begin{array}{ll} 1 & \mbox{ if } z_i > 0 \\ 0 & \mbox{ otherwise} \end{array} \right.$$
+now $z_i \sim N \left(\sum_{j=1}^m g_j(x_i), 1\right)$ where $g_j$ are the predicted values from the individual trees $j$. Note that this model implies that $\tau = 1$ and is not updated.
+
+The update for $z_i$ at the end of each set of tree updates is:
+$$z_i | y_i = 1 \sim max \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right]$$
+$$z_i | y_i = 0 \sim min \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right]$$
+
+Otherwise all updates (trees and means) are the same.
+
 \section*{Mean and variance changing}
 
 An alternative, slightly more flexible, model can be created by giving each terminal node it's own precision value. Thus for tree $j$ we have:

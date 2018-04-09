@@ -132,8 +132,8 @@ classBART = function(X, y, # X is the feature matrix, y is the target
     # Update z
     z = update_z(y, predictions)
 
-    # Get the overall log likelihood
-    log_lik = sum(dbinom(y, size = 1, prob = boot::inv.logit(predictions), log = TRUE))
+    # Get the overall log likelihood - use pnorm as this is a probit model
+    log_lik = sum(dbinom(y, size = 1, prob = pnorm(predictions), log = TRUE))
     
   } # End iterations loop
   cat('\n') # Make sure progress bar ends on a new line

@@ -40,7 +40,10 @@ set.seed(123)
 classBART_out = classBART(X, y, num_trees = 1,
                   MCMC = list(iter = 500,
                   burn = 0,
-                  thin = 1))
+                  thin = 1),
+                  priors = list(alpha = 0.95, # Prior control list
+                                beta = 2,
+                                tau_mu = 1/3))
 y_hat_classBART = apply(classBART_out$y_hat, 2, 'mean')
 plot(y, y_hat_classBART)
 cor(y, y_hat_classBART)

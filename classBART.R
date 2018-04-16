@@ -7,9 +7,7 @@ classBART = function(X, y, # X is the feature matrix, y is the target
                  control = list(node_min_size = 5), # Size of smallest nodes
                  priors = list(alpha = 0.95, # Prior control list
                                beta = 2,
-                               tau_mu = 2,
-                               nu = 3,
-                               lambda = 0.1), 
+                               tau_mu = 2), 
                  MCMC = list(iter = 1250, # Number of iterations
                              burn = 250, # Size of burn in
                              thin = 1) # Amount of thinning
@@ -22,14 +20,10 @@ classBART = function(X, y, # X is the feature matrix, y is the target
   alpha = priors$alpha # Tree shape parameter 1
   beta = priors$beta # Tree shape parameter 2
   tau_mu = priors$tau_mu # Precision for overall mean (sometimes called a?)
-  nu = priors$nu # Parameter 1 for precision
-  lambda = priors$lambda # Parameter 2 for precision
-    
+
   # Extract initial values
   tau = 1
   log_lik = 0
-  z = rep(-3, length(y))
-  
   # Extract MCMC details
   iter = MCMC$iter # Number of iterations
   burn = MCMC$burn # Size of burn in
@@ -45,6 +39,7 @@ classBART = function(X, y, # X is the feature matrix, y is the target
   # Make sure that y is two classes
   if(length(table(y)) != 2L) stop("Response must have two class values")
   y = as.integer(as.factor(y)) -1
+  z = rep(-3, length(y))
   z[y==1] = 3
   n = length(y)
   

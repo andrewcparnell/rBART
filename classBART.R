@@ -178,7 +178,7 @@ create_stump = function(num_trees,
     all_trees[[j]][[1]] = matrix(NA, ncol = 8, nrow = 1)
     
     # Second is the assignment to node indices
-    all_trees[[j]][[2]] = rep(1, length(y))
+    all_trees[[j]][[2]] = rep(1, nrow(X))
     
     # Create column names
     colnames(all_trees[[j]][[1]]) = c('terminal', 
@@ -191,7 +191,7 @@ create_stump = function(num_trees,
                                       'node_size')
     
     # Set values for stump 
-    all_trees[[j]][[1]][1,] = c(1, 1, NA, NA, NA, NA, 0, length(y))
+    all_trees[[j]][[1]][1,] = c(1, 1, NA, NA, NA, NA, 0, nrow(X))
   } # End of loop through trees
   
   return(all_trees)
@@ -345,7 +345,7 @@ prune_tree = function(X, y, curr_tree) {
   
   # If we're back to a stump no need to call fill_tree_details
   if(nrow(new_tree$tree_matrix) == 1) {
-    new_tree$node_indices = rep(1, length(y))
+    new_tree$node_indices = rep(1, nrow(X))
   } else {
     # If we've removed some nodes from the middle we need to re-number all the child_left and child_right values - the parent values will still be correct
     if(node_to_prune <= nrow(new_tree$tree_matrix)) { # Only need do this if we've removed some observations from the middle of the tree matrix
@@ -939,8 +939,8 @@ sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 0.5) {
 update_z = function(y, predictions) {
 
   z = rnorm(length(z), mean = predictions, sd = 1)
-  z[y == 1] = max(z[y==1], 0)
-  z[y == 0] = min(z[y==0], 0)
+  z[y == 1] = pmax(z[y==1], 0)
+  z[y == 0] = pmin(z[y==0], 0)
   
   return(z)
 }

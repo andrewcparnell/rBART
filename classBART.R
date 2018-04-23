@@ -134,15 +134,15 @@ classBART = function(X, y, # X is the feature matrix, y is the target
   cat('\n') # Make sure progress bar ends on a new line
   
   return(list(trees = tree_store,
-         y_hat = y_hat_store,
-         log_lik = log_lik_store,
-         y = y,
-         X = X,
-         iter = iter,
-         burn = burn,
-         thin = thin,
-         store_size = store_size,
-         num_trees = num_trees))
+              y_hat = y_hat_store,
+              log_lik = log_lik_store,
+              y = y,
+              X = X,
+              iter = iter,
+              burn = burn,
+              thin = thin,
+              store_size = store_size,
+              num_trees = num_trees))
   
 } # End main function
 

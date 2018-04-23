@@ -182,7 +182,7 @@ The update for $z_i$ at the end of each set of tree updates is:
 $$z_i | y_i = 1 \sim max \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right]$$
 $$z_i | y_i = 0 \sim min \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right]$$
 
-Otherwise all updates (trees and means) are the same.
+Otherwise all updates (trees and means) are the same. However, finding the predicted probabilities at the end of the algorithm requires $\phi^{-1}(\sum_{j=1}^m g_j(x_i))$ where $\phi$ is the normal cdf function. These probabilities can be then be used to create misclassification tables, ROC curves, etc.
 
 \section*{Mean and variance changing}
 

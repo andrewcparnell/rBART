@@ -37,7 +37,7 @@ y[z<0] = 0
 # sigma_bartm = sqrt(sigsqs_bartm)
 
 set.seed(123)
-classBART_out = classBART(X, y, num_trees = 5)
+classBART_out = classBART(X, y, num_trees = 1)
                   # MCMC = list(iter = 500,
                   # burn = 0,
                   # thin = 1),

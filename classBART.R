@@ -7,9 +7,7 @@ classBART = function(X, y, # X is the feature matrix, y is the target
                  control = list(node_min_size = 5), # Size of smallest nodes
                  priors = list(alpha = 0.95, # Prior control list
                                beta = 2,
-                               tau_mu = 2,
-                               nu = 3,
-                               lambda = 0.1), 
+                               tau_mu = 2), 
                  MCMC = list(iter = 1250, # Number of iterations
                              burn = 250, # Size of burn in
                              thin = 1) # Amount of thinning
@@ -22,14 +20,10 @@ classBART = function(X, y, # X is the feature matrix, y is the target
   alpha = priors$alpha # Tree shape parameter 1
   beta = priors$beta # Tree shape parameter 2
   tau_mu = priors$tau_mu # Precision for overall mean (sometimes called a?)
-  nu = priors$nu # Parameter 1 for precision
-  lambda = priors$lambda # Parameter 2 for precision
-    
+
   # Extract initial values
   tau = 1
   log_lik = 0
-  z = rep(-3, length(y))
-  
   # Extract MCMC details
   iter = MCMC$iter # Number of iterations
   burn = MCMC$burn # Size of burn in
@@ -45,6 +39,7 @@ classBART = function(X, y, # X is the feature matrix, y is the target
   # Make sure that y is two classes
   if(length(table(y)) != 2L) stop("Response must have two class values")
   y = as.integer(as.factor(y)) -1
+  z = rep(-3, length(y))
   z[y==1] = 3
   n = length(y)
   
@@ -139,15 +134,15 @@ classBART = function(X, y, # X is the feature matrix, y is the target
   cat('\n') # Make sure progress bar ends on a new line
   
   return(list(trees = tree_store,
-         y_hat = y_hat_store,
-         log_lik = log_lik_store,
-         y = y,
-         X = X,
-         iter = iter,
-         burn = burn,
-         thin = thin,
-         store_size = store_size,
-         num_trees = num_trees))
+              y_hat = y_hat_store,
+              log_lik = log_lik_store,
+              y = y,
+              X = X,
+              iter = iter,
+              burn = burn,
+              thin = thin,
+              store_size = store_size,
+              num_trees = num_trees))
   
 } # End main function
 
@@ -183,7 +178,7 @@ create_stump = function(num_trees,
     all_trees[[j]][[1]] = matrix(NA, ncol = 8, nrow = 1)
     
     # Second is the assignment to node indices
-    all_trees[[j]][[2]] = rep(1, length(y))
+    all_trees[[j]][[2]] = rep(1, nrow(X))
     
     # Create column names
     colnames(all_trees[[j]][[1]]) = c('terminal', 
@@ -196,7 +191,7 @@ create_stump = function(num_trees,
                                       'node_size')
     
     # Set values for stump 
-    all_trees[[j]][[1]][1,] = c(1, 1, NA, NA, NA, NA, 0, length(y))
+    all_trees[[j]][[1]][1,] = c(1, 1, NA, NA, NA, NA, 0, nrow(X))
   } # End of loop through trees
   
   return(all_trees)
@@ -350,7 +345,7 @@ prune_tree = function(X, y, curr_tree) {
   
   # If we're back to a stump no need to call fill_tree_details
   if(nrow(new_tree$tree_matrix) == 1) {
-    new_tree$node_indices = rep(1, length(y))
+    new_tree$node_indices = rep(1, nrow(X))
   } else {
     # If we've removed some nodes from the middle we need to re-number all the child_left and child_right values - the parent values will still be correct
     if(node_to_prune <= nrow(new_tree$tree_matrix)) { # Only need do this if we've removed some observations from the middle of the tree matrix
@@ -944,8 +939,8 @@ sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 0.5) {
 update_z = function(y, predictions) {
 
   z = rnorm(length(z), mean = predictions, sd = 1)
-  z[y == 1] = max(z[y==1], 0)
-  z[y == 0] = min(z[y==0], 0)
+  z[y == 1] = pmax(z[y==1], 0)
+  z[y == 0] = pmin(z[y==0], 0)
   
   return(z)
 }

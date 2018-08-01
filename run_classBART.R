@@ -37,13 +37,23 @@ y[z<0] = 0
 # sigma_bartm = sqrt(sigsqs_bartm)
 
 set.seed(123)
-classBART_out = classBART(X, y, num_trees = 1,
-                  MCMC = list(iter = 500,
-                  burn = 0,
-                  thin = 1))
+classBART_out = classBART(X, y, num_trees = 1)
+                  # MCMC = list(iter = 500,
+                  # burn = 0,
+                  # thin = 1),
+                  # priors = list(alpha = 0.95, # Prior control list
+                  #               beta = 2,
+                  #               tau_mu = 1/3))
 y_hat_classBART = apply(classBART_out$y_hat, 2, 'mean')
 plot(y, y_hat_classBART)
 cor(y, y_hat_classBART)
+
+# Plot ROC 
+library(ROCR)
+pred <- prediction( y_hat_classBART, y)
+perf <- performance(pred,"tpr","fpr")
+plot(perf)
+table(round(y_hat_classBART), y)
 stop()
 
 

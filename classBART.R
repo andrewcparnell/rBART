@@ -67,7 +67,7 @@ classBART = function(X, y, # X is the feature matrix, y is the target
     if((i > burn) & ((i %% thin) == 0) ) {
       curr = (i - burn)/thin
       tree_store[[curr]] = curr_trees
-      y_hat_store[curr,] = boot::inv.logit(predictions)
+      y_hat_store[curr,] = pnorm(predictions)
       z_store[curr,] = z
       log_lik_store[curr] = log_lik
     }

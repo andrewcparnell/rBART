@@ -2,7 +2,7 @@
 
 # Clear the workspace and load in package
 rm(list = ls())
-library(bartMachine) # install.packages('bartMachine') if required
+#library(bartMachine) # install.packages('bartMachine') if required
 #source("https://bioconductor.org/biocLite.R")
 library(treeio) # biocLite("treeio")
 library(ggtree) # biocLite("ggtree")
@@ -61,7 +61,7 @@ stop()
 plot(classBART_out$log_lik)
 
 # Compare predictions from truth
-y_hat_classBART = apply(classBART_out$y_hat, 2, 'mean')
+y_hat_classBART = apply(classBART_out$y_hat, 2, 'all')
 plot(y, y_hat_classBART)
 abline(a = 0, b = 1)
 cor(y, y_hat_classBART)

@@ -53,7 +53,7 @@ classBART = function(X, y, # X is the feature matrix, y is the target
   pb = utils::txtProgressBar(min = 1, max = iter,
                              style = 3, width = 60, 
                              title = 'Running classBART...')
-  
+  count = rep(0, num_trees)
   # Start the iterations loop
   for (i in 1:iter) {
     utils::setTxtProgressBar(pb, i)
@@ -84,7 +84,6 @@ classBART = function(X, y, # X is the feature matrix, y is the target
       # Propose a new tree via grow/change/prune/swap
       type = sample(c('grow', 'prune', 'change', 'swap'), 1)
       if(i < max(floor(0.1*burn), 10)) type = 'grow' # Grow for the first few iterations 
-
       # Get a new tree!
       new_trees = curr_trees
       new_trees[[j]] = update_tree(y = z,
@@ -112,14 +111,13 @@ classBART = function(X, y, # X is the feature matrix, y is the target
       if(a > runif(1)) {
         # Make changes if accept
         curr_trees = new_trees
-        
       } # End of accept if statement
 
       # Update mu whether tree accepted or not
-      curr_trees[[j]] = simulate_mu(curr_trees[[j]], 
-                                    current_partial_residuals, 
+      curr_trees[[j]] = simulate_mu(curr_trees[[j]],
+                                    current_partial_residuals,
                                     tau, tau_mu)
-
+      
     } # End loop through trees
     
     # Calculate full set of predictions
@@ -132,7 +130,6 @@ classBART = function(X, y, # X is the feature matrix, y is the target
     
   } # End iterations loop
   cat('\n') # Make sure progress bar ends on a new line
-  
   return(list(trees = tree_store,
               y_hat = y_hat_store,
               log_lik = log_lik_store,
@@ -466,7 +463,6 @@ swap_tree = function(X, y, curr_tree, node_min_size) {
   pairs_of_internal = cbind(internal_nodes, parent_of_internal)[-1,]
   
   # Create a while loop to get good trees
-  # Create a counter to stop after a certain number of bad trees
   max_bad_trees = 2
   count_bad_trees = 0
   bad_trees = TRUE
@@ -735,7 +731,6 @@ get_children = function(tree_mat, parent) {
   }
 }
 
-
 # Predict function --------------------------------------------------------
 
 predict_classBART = function(newX, classBART_posterior, 
@@ -744,7 +739,7 @@ predict_classBART = function(newX, classBART_posterior,
   # Note that there is minimal error checking in this - newX needs to be right!
   
   # Create holder for predicted values
-  n_its = length(classBART_posterior$sigma)
+  n_its = length(classBART_posterior$log_lik)
   y_hat_mat = matrix(NA, nrow = n_its,
                      ncol = nrow(newX))
   
@@ -761,8 +756,8 @@ predict_classBART = function(newX, classBART_posterior,
   # Sort out what to return
   out = switch(type,
                all = y_hat_mat,
-               mean = apply(y_hat_mat,2,'mean'),
-               median = apply(y_hat_mat,2,'median'))
+               mean = pnorm(apply(y_hat_mat,2,'mean')),
+               median = pnorm(apply(y_hat_mat,2,'median')))
   
   return(out)
   
@@ -938,7 +933,7 @@ sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 0.5) {
 
 update_z = function(y, predictions) {
 
-  z = rnorm(length(z), mean = predictions, sd = 1)
+  z = rnorm(length(y), mean = predictions, sd = 1)
   z[y == 1] = pmax(z[y==1], 0)
   z[y == 0] = pmin(z[y==0], 0)
   

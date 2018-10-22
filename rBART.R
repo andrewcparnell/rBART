@@ -43,6 +43,7 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   sigma_store = rep(NA, store_size)
   y_hat_store = matrix(NA, ncol = length(y), nrow = store_size)
   log_lik_store = rep(NA, store_size)
+  full_cond_store = matrix(NA, ncol = num_trees, nrow = store_size)
   
   # Scale the response target variable
   y_mean = mean(y)
@@ -116,6 +117,9 @@ rBART = function(X, y, # X is the feature matrix, y is the target
       # If accepting a new tree update all relevant parts
       a = exp(l_new - l_old)
       
+      if((i > burn) & ((i %% thin) == 0) ) {
+        full_cond_store[curr, j] = l_old
+      }
       if(a > runif(1)) {
         # Make changes if accept
         curr_trees = new_trees
@@ -146,8 +150,9 @@ rBART = function(X, y, # X is the feature matrix, y is the target
   
   return(list(trees = tree_store,
          sigma = sigma_store,
-         y_hat = y_hat_store,
+         y_hat = y_hat_store*y_sd + y_mean,
          log_lik = log_lik_store,
+         full_cond = full_cond_store,
          y = y,
          X = X,
          iter = iter,

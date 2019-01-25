@@ -114,6 +114,9 @@ rBART = function(X, y, # X is the feature matrix, y is the target
                                                tau_mu) + 
         get_tree_prior(curr_trees[[j]], alpha, beta)
       
+      # cat('tree', j,'\n')
+      # cat('l_new = ',l_new,'; l_old = ',l_old,'\n')
+      
       # If accepting a new tree update all relevant parts
       a = exp(l_new - l_old)
       
@@ -123,7 +126,6 @@ rBART = function(X, y, # X is the feature matrix, y is the target
       if(a > runif(1)) {
         # Make changes if accept
         curr_trees = new_trees
-        
       } # End of accept if statement
 
       # Update mu whether tree accepted or not
@@ -587,8 +589,12 @@ tree_full_conditional = function(tree, R, tau, tau_mu) {
   S_j = aggregate(R, by = list(tree$node_indices), sum)[,2]
 
   # Now calculate the log posterior
-  log_post = 0.5 * length(R) * log(tau) + sum(0.5 * log( tau_mu / (tau_mu + nj * tau)) -
-    0.5 * tau * (sumRsq_j - tau * S_j^2 / (tau_mu + nj * tau) ) )
+  # log_post = 0.5 * length(R) * log(tau) + sum(0.5 * log( tau_mu / (tau_mu + nj * tau)) -
+  #   0.5 * tau * (sumRsq_j - tau * S_j^2 / (tau_mu + nj * tau) ) )
+  log_post = 0.5 * length(R) * log(tau) + 
+    0.5 * ( sum(log( tau_mu / (tau_mu + nj * tau))) -
+              tau * sum(sumRsq_j) + 
+              tau^2 * sum( S_j^2 / (tau_mu + nj * tau) ) )
   return(log_post)
   # 
   # New Mahdi version - slower

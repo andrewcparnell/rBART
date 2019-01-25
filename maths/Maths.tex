@@ -179,8 +179,10 @@ $$y_i = \left\{ \begin{array}{ll} 1 & \mbox{ if } z_i > 0 \\ 0 & \mbox{ otherwis
 now $z_i \sim N \left(\sum_{j=1}^m g_j(x_i), 1\right)$ where $g_j$ are the predicted values from the individual trees $j$. Note that this model implies that $\tau = 1$ and is not updated.
 
 The update for $z_i$ at the end of each set of tree updates is:
-$$z_i | y_i = 1 \sim max \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right]$$
-$$z_i | y_i = 0 \sim min \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right]$$
+\begin{eqnarray}
+z_i | y_i = 1 &\sim& max \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right] \\
+z_i | y_i = 0 &\sim& min \left[ N\left(\sum_{j=1}^m g_j(x_i), 1\right), 0 \right]
+\end{eqnarray}
 
 Otherwise all updates (trees and means) are the same. However, finding the predicted probabilities at the end of the algorithm requires $\phi^{-1}(\sum_{j=1}^m g_j(x_i))$ where $\phi$ is the normal cdf function. These probabilities can be then be used to create misclassification tables, ROC curves, etc.
 

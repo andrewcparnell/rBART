@@ -35,10 +35,10 @@ sigsqs_bartm = get_sigsqs(bart_machine)
 sigma_bartm = sqrt(sigsqs_bartm)
 
 set.seed(123)
-rBART_out = rBART(X, y, num_trees = 2,
-                  MCMC = list(iter = 500,
-                  burn = 0,
-                  thin = 1))
+rBART_out = rBART(X, y, num_trees = 5,
+                  MCMC = list(iter = 10000,
+                  burn = 2000,
+                  thin = 8))
 plot(1/(rBART_out$sigma^2))
 y_hat_rBART = apply(rBART_out$y_hat, 2, 'mean')
 plot(y, y_hat_rBART)

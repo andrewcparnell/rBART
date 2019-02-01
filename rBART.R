@@ -928,11 +928,11 @@ rBART_CV = function(X, y, folds = 5, num_trees = 2, ...) {
 
 # Simulate friedman -------------------------------------------------------
 
-sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 0.5) {
+sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 1) {
   # Simulate some data using a multivariate version of Friedman
   # y = 10sin(πx1x2)+20(x3−0.5)2+10x4+5x5+ε
   X = matrix(NA, nrow = n, ncol = 5 + p)
-  for(i in 1:ncol(X)) X[,i] = rnorm(n, 0, 1)
+  for(i in 1:ncol(X)) X[,i] = runif(n, 0, 1)
   pars = matrix(rnorm(5 * d, sd = scale_par), ncol = d, nrow = 5) # 5 parameters on d dimensions
   y = mean = matrix(NA, ncol = d, nrow = n)
   Sigma = rWishart(1, d, scale_err*diag(d))[,,1]
@@ -942,9 +942,24 @@ sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 0.5) {
     err = matrix(rnorm(n, sd = sqrt(Sigma)), ncol = 1)
   }
   for(j in 1:d) {
-    mean[,j] = pars[1,j]*sin(X[,1]*X[,2]) + pars[2,j] * (X[,3]-0.5)^2 + pars[3,j] * X[,4] + pars[5,j] * X[,5]
+    mean[,j] = pars[1,j]*sin(pi*X[,1]*X[,2]) + pars[2,j] * (X[,3]-0.5)^2 + pars[3,j] * X[,4] + pars[5,j] * X[,5]
     y[,j] = mean[,j] + err[,j]
   }
   return(list(y = y, X = X, Sigma = Sigma, mean = mean))
+}
+
+
+# Simple version ----------------------------------------------------------
+
+sim_friedman_simple = function(n, p = 0, scale_err = 1) {
+  # Simulate some data using a multivariate version of Friedman
+  # y = 10sin(πx1x2)+20(x3−0.5)2+10x4+5x5+ε
+  X = matrix(runif(n*(5+p)), nrow = n, ncol = 5 + p)
+  pars = c(10, 20, 10, 5)
+  mean = pars[1] * sin(pi*X[,1]*X[,2]) + pars[2] * (X[,3]-0.5)^2 + 
+    pars[3] * X[,4] + pars[4] * X[,5]
+  y = rnorm(n, mean, scale_err)
+  return(list(y = y, X = X, df = cbind(y, X),
+              true_mean = mean, true_scale = scale_err))
 }
 

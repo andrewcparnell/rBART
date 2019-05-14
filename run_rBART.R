@@ -2,10 +2,10 @@
 
 # Clear the workspace and load in package
 rm(list = ls())
-library(bartMachine) # install.packages('bartMachine') if required
+#library(bartMachine) # install.packages('bartMachine') if required
 #source("https://bioconductor.org/biocLite.R")
-library(treeio) # biocLite("treeio")
-library(ggtree) # biocLite("ggtree")
+library(treeio) # biocLite("treeio") devtools::install_github('GuangchuangYu/treeio')
+library(ggtree) # biocLite("ggtree") or devtools::install_github('GuangchuangYu/ggtree')
 
 # Source in the code
 source('rBART.R')
@@ -19,27 +19,28 @@ y = scale(data[,1])[,1]
 # X = as.data.frame(dat$X)
 
 # # Run it through bartMachine with a fixed seed and 1 tree
-set.seed(123)
-bart_machine = bartMachine(X, y, num_trees = 2)
-summary(bart_machine)
+# set.seed(123)
+# bart_machine = bartMachine(X, y, num_trees = 2)
+# summary(bart_machine)
 # 
 # Extract predictions and plot vs true values
-bart_machine_pred = bart_machine_get_posterior(bart_machine,
-                                               new_data = X)
-y_hat_bartm = bart_machine_pred$y_hat
+# bart_machine_pred = bart_machine_get_posterior(bart_machine,
+#                                                new_data = X)
+# y_hat_bartm = bart_machine_pred$y_hat
 #y_hat_post = bart_machine_pred$y_hat_posterior_samples
-plot(y, y_hat_bartm) # Unsurprisingly pretty good
+# plot(y, y_hat_bartm) # Unsurprisingly pretty good
 
 # Extract the sig squared posteriors
-sigsqs_bartm = get_sigsqs(bart_machine)
-sigma_bartm = sqrt(sigsqs_bartm)
+# sigsqs_bartm = get_sigsqs(bart_machine)
+# sigma_bartm = sqrt(sigsqs_bartm)
 
-set.seed(123)
-rBART_out = rBART(X, y, num_trees = 5,
+set.seed(1)
+rBART_out = rBART(X, y, num_trees = 1,
                   MCMC = list(iter = 10000,
-                  burn = 2000,
+                  burn = 0,
                   thin = 8))
-plot(1/(rBART_out$sigma^2))
+n_saved = length(rBART_out$sigma)
+qplot(1:n_saved, 1/(rBART_out$sigma^2), xlab = 'Iteration (thinned)', ylab = 'Residual\nsd') + theme_minimal() +theme(axis.title.y = element_text(angle = 0, vjust = 1, hjust=0))
 y_hat_rBART = apply(rBART_out$y_hat, 2, 'mean')
 plot(y, y_hat_rBART)
 cor(y, y_hat_rBART)

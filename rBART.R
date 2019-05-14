@@ -878,7 +878,7 @@ plot_tree = function(rBART_posterior,
   attr(tree, 'order') = 'cladewise'
   
   # Now plot
-  p = ggtree(tree) + 
+  p = ggtree(tree, ladderize=FALSE) + 
     geom_tiplab(align = TRUE) + labs(title=paste0("Iteration: ",iter,', tree:',tree_num))
   if(!horiz) p = p + coord_flip() + 
     scale_x_reverse()

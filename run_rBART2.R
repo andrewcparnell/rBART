@@ -3,9 +3,9 @@
 
 # Clear the workspace and load in package
 rm(list = ls())
-#source("https://bioconductor.org/biocLite.R")
-library(treeio) # biocLite("treeio")
-library(ggtree) # biocLite("ggtree")
+# BiocManager::install(c("treeio", "ggtree"))
+# library(treeio)
+# library(ggtree)
 
 # Source in the code
 source('rBART2.R')
@@ -26,13 +26,6 @@ rBART2_out = rBART2(X, y, num_trees = 10)
                     # MCMC = list(iter = 10,
                     #             burn = 0,
                     #             thin = 1))
-y_hat_rBART2 = apply(rBART2_out$y_hat, 2, 'mean')
-plot(y, y_hat_rBART2)
-abline(a = 0, b = 1)
-cor(y, y_hat_rBART2)
-
-#sqrt(mean(y - y_hat_rBART2)^2)
-
 stop()
 
 # Compare predictions from truth
@@ -47,9 +40,51 @@ plot(pred_y_rBART2, y_hat_rBART2) # Should be identical
 abline(a = 0, b = 1)
 
 # Tree plotter 
-plot_tree(rBART2_out, horiz = TRUE)
+# plot_tree(rBART2_out, horiz = TRUE) # Doesn't work any more!
 
-stop()
+# Check uncertainties on the mean
+pred_y_rBART2_mu = predict_rBART2(X, rBART2_out, type = 'all',
+                                   par = 'mu')
+# Now compute lower and upper 50% intervals
+y_hat_rBART_mu_low_high = apply(rBART2_out$y_hat, 2, 'quantile',
+                             c(0.25, 0.5, 0.75))
+plot(y, y_hat_rBART_mu_low_high[2,])
+sum <- 0
+for(i in 1:ncol(y_hat_rBART_mu_low_high)) {
+  lines(c(y[i], y[i]), 
+        c(y_hat_rBART_mu_low_high[1,i], y_hat_rBART_mu_low_high[3,i]))
+  if(y[i] < y_hat_rBART_mu_low_high[1,i] | y[i] > y_hat_rBART_mu_low_high[3,i]) {
+    sum <- sum + 1
+  }
+}
+title(1 - sum/ncol(y_hat_rBART_mu_low_high))
+abline(a = 0, b = 1)
+
+# Now do the same again but for tau. Should be larger than the previous one
+pred_y_rBART2_tau = predict_rBART2(X, rBART2_out, type = 'all',
+                                   par = 'tau')
+# Now simulate from the model for these tau values for the above mu values
+y_hat_full <- pred_y_rBART2_tau
+for (i in 1:nrow(pred_y_rBART2_tau)) {
+  for (j in 1:ncol(pred_y_rBART2_tau)) {
+    y_hat_full[i,j] <- rnorm(1, pred_y_rBART2_mu[i,j], 
+                             sd = 1/sqrt(pred_y_rBART2_tau[i,j]))
+  }
+}
+
+y_hat_full_low_high = apply(y_hat_full, 2, 'quantile',
+                             c(0.25, 0.5, 0.75))
+plot(y, y_hat_full_low_high[2,]) # Should be identical
+sum <- 0
+for(i in 1:ncol(y_hat_full_low_high)) {
+  lines(c(y[i], y[i]), 
+        c(y_hat_full_low_high[1,i], y_hat_full_low_high[3,i]))
+  if(y[i] < y_hat_full_low_high[1,i] | y[i] > y_hat_full_low_high[3,i]) {
+    sum <- sum + 1
+  }
+}
+abline(a = 0, b = 1)
+title(1 - sum/ncol(y_hat_full_low_high))
 
 # WARNING: next part slow -------------------------------------------------
 

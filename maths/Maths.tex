@@ -43,18 +43,18 @@ The equations referred to below are displayed later in this document.
 	\For{trees $j$ from 1 to $M$}{
 		Compute partial residuals from $y$ minus predictions of all trees except tree $j$\;
 		Grow a new tree $T_j^{new}$ based on grow/prune/change/swap\;
-		Set $l_{new}$ = log full conditional of new tree $T^{new}_j$ based on Equation 1 plus Equation 4\;
+		Set $l_{new}$ = log full conditional of new tree $T^{new}_j$ based on Equation~\ref{residual probability} plus Equation~\ref{tree probability}\;
 		Set $l_{old}$ = log full conditional of old tree $T_j$ based on same equations\;
 		Set $a = \exp(l_{new} - l_{old} )$\;
 		Generate $u \sim U(0, 1)$\;
 		\If{$a > u$}{
 			Set $T_j = T_j^{new}$\;
 		}
-		Simulate $\mu$ values using Equation 3\;
+		Simulate $\mu$ values using Equation~\ref{mu update}\;
 	}
 	
 	Get predictions $\hat{y}$ from all trees\;
-	Update $\tau$ using Equation 4\;
+	Update $\tau$ using Equation~\ref{tau update}\;
 }
 \caption{BART Markov chain Monte Carlo}
 \end{algorithm}
@@ -109,6 +109,7 @@ which on the log scale gives:
 
 This can be simplified further to give:
 \begin{align}
+\label{residual probability}
 \frac{n}{2} \log(\tau) + \frac{1}{2} \sum_{j=1}^b \log \left( \frac{\tau_\mu}{\tau_\mu + n_j \tau} \right) - \frac{\tau}{2} \sum_{j=1}^b 
 \sum_{i=1}^{n_j} R_{ji}^2 + \frac{\tau^2}{2} \sum_{j=1}^b \frac{ S_j^2 }{ \tau_\mu + n_j \tau }
 \end{align}
@@ -131,10 +132,11 @@ Now:
 Q &= n_j \tau \mu_j^2 - 2\mu_j \tau S_j + \tau_\mu \mu_j^2\\
 &= (n_j \tau + \tau_\mu) \mu_j^2 - 2 \tau \mu_j S_j \\
 &= (n_j \tau + \tau_\mu) \left[ \mu_j^2 - \frac{2 \tau \mu_j S_j}{n_j \tau + \tau_\mu} \right] \\
-&\propto (n_j \tau + \tau_\mu) \left[ \mu_j - \frac{\tau \mu_j S_j}{n_j \tau + \tau_\mu} \right]^2
+&\propto (n_j \tau + \tau_\mu) \left[ \mu_j - \frac{\tau S_j}{n_j \tau + \tau_\mu} \right]^2
 \end{align*}
 so therefore:
 \begin{align}
+\label{mu update}
 \mu_j| \ldots \sim N \left( \frac{\tau S_j}{n_j \tau + \tau_\mu} , (n_j \tau + \tau_\mu)^{-1} \right)
 \end{align}
 
@@ -151,6 +153,7 @@ Letting $S = \sum_{i=1}^n (y_i - \mu_i)^2$ we get:
 \end{align*}
 so
 \begin{align}
+\label{tau update}
 \tau | \ldots \sim Ga \left( \frac{n + \nu}{2}, \frac{S + \nu \lambda}{2} \right)
 \end{align}
 
@@ -169,6 +172,7 @@ P &= \prod_{i=1}^b \left[ 1 - \alpha (1 + d^t_i)^{-\beta} \right] \prod_{i=1}^k 
 where $d^t_i$ is the depth of the $i$th terminal node and $d^{nt}_i$ is the depth of the $i$th non-terminal node.
 On the log scale this gives:
 \begin{align}
+\label{tree probability}
 \log P &= \sum_{i=1}^b \left[ \log \left(1 - \alpha(1 + d^t_i)^{-\beta} \right) \right] + \sum_{i=1}^k \left[ \log(\alpha) - \beta \log(1 + d^{nt}_i) \right]
 \end{align}
 
@@ -244,5 +248,4 @@ which on the log scale is:
 $$\log \prod_{j=1}^b \pi_j = -\frac{1}{2} \sum_{j=1}^b \log(a + n_j) + \sum_{j=1}^b \log \Gamma \left( \frac{n_j + \nu}{2} \right) - \sum_{j=1}^b \left( \frac{n_j + \nu}{2} \log \left[SS_{R_j} + \nu \lambda + \frac{an_j\bar{R}_j^2}{n_j + a} \right] \right) $$
 
 \end{document}
-
 

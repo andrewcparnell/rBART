@@ -937,9 +937,31 @@ sim_friedman = function(n, p = 0, d = 1, scale_par = 5, scale_err = 0.5) {
 
 update_z = function(y, predictions) {
 
-  z = rnorm(length(y), mean = predictions, sd = 1)
-  z[y == 1] = pmax(z[y==1], 0)
-  z[y == 0] = pmin(z[y==0], 0)
+  # incorrect old approach using "rectified" normal distributions
+  # z = rnorm(length(y), mean = predictions, sd = 1)
+  # z[y == 1] = pmax(z[y==1], 0)
+  # z[y == 0] = pmin(z[y==0], 0)
+  
+  # keefe's correct approach using proper truncated normal distributions
+  z[y == 1] = rtruncnorm(sum(y == 1), 
+                         mu = predictions[y == 1], sd = 1, 
+                         lower = -Inf, upper = 0)
+  z[y == 0] = rtruncnorm(sum(y == 0), 
+                         mu = predictions[y == 0], sd = 1, 
+                         lower = 0, upper = Inf)
   
   return(z)
+}
+
+rtruncnorm = function(n, mu, sd, lower, upper) { 
+  # loosely based on LaplacesDemon::dtrunc, 
+  # for the sake of eliminating dependence on other packages,
+  # e.g. extraDistr::rtnorm, msm::rtnorm, etc.
+  
+  u = runif(n)
+  p_low = pnorm(lower, mu, sd)
+  p = p_low + u * (pnorm(upper, mu, sd) - p_low)
+  x = qnorm(p, mu, sd)
+  
+  return(x)
 }

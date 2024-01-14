@@ -5,7 +5,10 @@
 
 rBART2 <- function(X, y, # X is the feature matrix, y is the target
                    num_trees = 2, # Number of trees
-                   control = list(node_min_size = 5), # Size of smallest nodes
+                   control = list(
+                     node_min_size = 5, # Size of smallest nodes
+                     tree_move_probs = c(0.25, 0.25, 0.4, 0.1) # Respective probabilities of grow, prune, change, and swap tree proposal moves
+                     ), 
                    priors = list(
                      alpha = 0.95, # Prior control list
                      beta = 2,
@@ -21,6 +24,7 @@ rBART2 <- function(X, y, # X is the feature matrix, y is the target
 ) {
   # Extract control parameters
   node_min_size <- control$node_min_size
+  tree_move_probs <- control$tree_move_probs
 
   # Extract hyper-parameters
   alpha <- priors$alpha # Tree shape parameter 1
@@ -67,7 +71,7 @@ rBART2 <- function(X, y, # X is the feature matrix, y is the target
     utils::setTxtProgressBar(pb, i)
 
     # If at the right place store everything
-    if ((i > burn) & ((i %% thin) == 0)) {
+    if ((i > burn) && ((i %% thin) == 0)) {
       curr <- (i - burn) / thin
       tree_store[[curr]] <- curr_trees
       y_hat_store[curr, ] <- predictions
@@ -89,7 +93,7 @@ rBART2 <- function(X, y, # X is the feature matrix, y is the target
       }
 
       # Propose a new tree via grow/change/prune/swap
-      type <- sample(c("grow", "prune", "change", "swap"), 1)
+      type <- sample(c("grow", "prune", "change", "swap"), 1, prob=tree_move_probs)
       if (i < max(floor(0.1 * burn), 10)) type <- "grow" # Grow for the first few iterations
 
       # Get a new tree!
@@ -123,7 +127,7 @@ rBART2 <- function(X, y, # X is the feature matrix, y is the target
       # If accepting a new tree update all relevant parts
       acc <- exp(l_new - l_old)
 
-      if (acc > runif(1)) {
+      if(acc > 1 || acc > runif(1)) {
         # Make changes if accept
         curr_trees <- new_trees
       } # End of accept if statement

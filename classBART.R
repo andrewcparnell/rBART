@@ -943,12 +943,17 @@ update_z = function(y, predictions) {
   # z[y == 0] = pmin(z[y==0], 0)
   
   # keefe's correct approach using proper truncated normal distributions
-  z[y == 1] = rtruncnorm(sum(y == 1), 
-                         mu = predictions[y == 1], sd = 1, 
-                         lower = -Inf, upper = 0)
-  z[y == 0] = rtruncnorm(sum(y == 0), 
-                         mu = predictions[y == 0], sd = 1, 
-                         lower = 0, upper = Inf)
+  # z[y == 1] = rtruncnorm(sum(y == 1), 
+  #                        mu = predictions[y == 1], sd = 1, 
+  #                        lower = -Inf, upper = 0)
+  # z[y == 0] = rtruncnorm(sum(y == 0), 
+  #                        mu = predictions[y == 0], sd = 1, 
+  #                        lower = 0, upper = Inf)
+  
+  # keefe's faster version of correct approach
+  z = rtruncnorm(length(y), mu = predictions, sd = 1,
+                 lower = ifelse(y == 1, -Inf, 0),
+                 upper = ifelse(y == 1, 0, Inf))
   
   return(z)
 }
